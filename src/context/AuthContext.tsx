@@ -1,19 +1,15 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from '@/hooks/use-toast';
 
-// Define user roles
 export enum UserRole {
-  SUPER_ADMIN = 'super_admin',
-  ADMIN = 'admin',
-  REGISTRAR = 'registrar',
-  CASHIER = 'cashier',
-  TEACHER = 'teacher',
-  STUDENT = 'student',
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  ADMIN = 'ADMIN',
+  REGISTRAR = 'REGISTRAR',
+  CASHIER = 'CASHIER',
+  TEACHER = 'TEACHER',
+  STUDENT = 'STUDENT'
 }
 
-// Define user interface
 export interface User {
   id: string;
   name: string;
@@ -22,146 +18,101 @@ export interface User {
   avatar?: string;
 }
 
-// Define context type
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
-  checkPermission: (requiredRole: UserRole | UserRole[]) => boolean;
+  checkPermission: (allowedRoles: UserRole[]) => boolean;
 }
 
-// Create context
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const initialState: AuthContextType = {
+  user: null,
+  isAuthenticated: false,
+  isLoading: true,
+  login: async () => false,
+  logout: () => {},
+  checkPermission: () => false
+};
 
-// Mock users for demonstration
-const mockUsers = [
-  {
-    id: '1',
-    name: 'Admin User',
-    email: 'admin@school.edu',
-    password: 'admin123',
-    role: UserRole.SUPER_ADMIN,
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix'
-  },
-  {
-    id: '2',
-    name: 'Registrar User',
-    email: 'registrar@school.edu',
-    password: 'registrar123',
-    role: UserRole.REGISTRAR,
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lily'
-  },
-  {
-    id: '3',
-    name: 'Cashier User',
-    email: 'cashier@school.edu',
-    password: 'cashier123',
-    role: UserRole.CASHIER,
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Max'
-  },
-  {
-    id: '4',
-    name: 'Teacher User',
-    email: 'teacher@school.edu',
-    password: 'teacher123',
-    role: UserRole.TEACHER,
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah'
-  }
-];
+const AuthContext = createContext<AuthContextType>(initialState);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const useAuth = () => useContext(AuthContext);
+
+interface AuthProviderProps {
+  children: React.ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
 
   // Check if user is already logged in
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
+    
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Failed to parse stored user:', error);
+        localStorage.removeItem('user');
+      }
     }
+    
     setIsLoading(false);
   }, []);
 
-  // Login function
-  const login = async (email: string, password: string) => {
-    setIsLoading(true);
-    
+  const login = async (email: string, password: string): Promise<boolean> => {
+    // In a real app, this would be an API call
+    // For demo purposes, we'll simulate a successful login with any credentials
     try {
-      // Simulate API call
+      // Simulate network request
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const foundUser = mockUsers.find(
-        u => u.email === email && u.password === password
-      );
+      // Mock user data
+      const mockUser: User = {
+        id: '1',
+        name: 'Admin User',
+        email: email,
+        role: UserRole.ADMIN,
+        avatar: '',
+      };
       
-      if (foundUser) {
-        const { password, ...userWithoutPassword } = foundUser;
-        setUser(userWithoutPassword);
-        localStorage.setItem('user', JSON.stringify(userWithoutPassword));
-        toast({
-          title: "Login successful",
-          description: `Welcome back, ${userWithoutPassword.name}!`,
-        });
-        navigate('/dashboard');
-      } else {
-        throw new Error('Invalid credentials');
-      }
+      // Store user in localStorage
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      setUser(mockUser);
+      
+      return true;
     } catch (error) {
-      toast({
-        title: "Login failed",
-        description: "Invalid email or password. Please try again.",
-        variant: "destructive",
-      });
-      console.error('Login error:', error);
-    } finally {
-      setIsLoading(false);
+      console.error('Login failed:', error);
+      return false;
     }
   };
 
-  // Logout function
   const logout = () => {
-    setUser(null);
     localStorage.removeItem('user');
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out.",
-    });
-    navigate('/login');
+    setUser(null);
   };
 
-  // Check if user has permission
-  const checkPermission = (requiredRole: UserRole | UserRole[]) => {
+  const checkPermission = (allowedRoles: UserRole[]): boolean => {
     if (!user) return false;
-    
-    if (Array.isArray(requiredRole)) {
-      return requiredRole.includes(user.role);
-    }
-    
-    // Super admin has access to everything
-    if (user.role === UserRole.SUPER_ADMIN) return true;
-    
-    return user.role === requiredRole;
+    return allowedRoles.includes(user.role);
   };
 
-  const value = {
-    user,
-    isAuthenticated: !!user,
-    isLoading,
-    login,
-    logout,
-    checkPermission,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+        isLoading,
+        login,
+        logout,
+        checkPermission,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
