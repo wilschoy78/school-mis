@@ -1,13 +1,17 @@
 
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
 
 const Dashboard = () => {
   const { user } = useAuth();
   
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+    <MainLayout>
+      <PageHeader 
+        title="Dashboard" 
+        description="Welcome to your school management dashboard"
+      />
       
       {user && (
         <div className="bg-white shadow rounded-lg p-6 mb-6">
@@ -32,7 +36,7 @@ const Dashboard = () => {
           <p className="text-gray-600">Perform common tasks with one click</p>
         </div>
       </div>
-    </div>
+    </MainLayout>
   );
 };
 
