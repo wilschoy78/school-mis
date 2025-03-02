@@ -10,6 +10,7 @@ interface DashboardCardProps {
   children?: React.ReactNode;
   footer?: React.ReactNode;
   isGlass?: boolean;
+  onClick?: () => void;
 }
 
 export const DashboardCard: React.FC<DashboardCardProps> = ({
@@ -19,13 +20,18 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
   children,
   footer,
   isGlass = false,
+  onClick,
 }) => {
   return (
-    <Card className={cn(
-      "overflow-hidden transition-all duration-300 border",
-      isGlass && "glassmorphism",
-      className
-    )}>
+    <Card 
+      className={cn(
+        "overflow-hidden transition-all duration-300 border",
+        isGlass && "glassmorphism",
+        onClick && "cursor-pointer",
+        className
+      )}
+      onClick={onClick}
+    >
       {(title || description) && (
         <CardHeader className="p-5">
           {title && <CardTitle className="text-xl">{title}</CardTitle>}
