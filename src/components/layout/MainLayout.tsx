@@ -49,7 +49,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         isMobile ? "w-full" : "ml-[70px] lg:ml-[250px]",
         className
       )}>
-        <div className="h-full px-0">
+        <div className="h-full">
           {children}
         </div>
       </main>
