@@ -1,623 +1,279 @@
 
 import React, { useState } from 'react';
 import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  Table, TableBody, TableCaption, TableCell, 
+  TableHead, TableHeader, TableRow 
+} from '@/components/ui/table';
+import { 
+  Dialog, DialogContent, DialogDescription, 
+  DialogHeader, DialogTitle, DialogTrigger, DialogFooter
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { 
-  GraduationCap,
-  Search,
-  Plus,
-  MoreHorizontal,
-  ChevronLeft,
-  ChevronRight,
-  Filter,
-  FileText,
-  Edit,
-  Eye,
-  Trash,
-} from 'lucide-react';
-import { useAuth, UserRole } from '@/context/AuthContext';
-import { cn } from '@/lib/utils';
-import { useForm } from 'react-hook-form';
-import { toast } from '@/hooks/use-toast';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { PlusCircle, Search, Pencil } from 'lucide-react';
 
-// Define mock data for students
-const mockStudents = [
-  { 
-    id: '1', 
-    name: 'John Smith', 
-    studentId: 'S2023001', 
-    grade: '12',
-    gender: 'Male',
-    contactNo: '(555) 123-4567',
-    email: 'john.smith@example.com',
-    guardian: 'Mary Smith',
-    status: 'Enrolled',
-    balance: 450,
-  },
-  { 
-    id: '2', 
-    name: 'Maria Garcia', 
-    studentId: 'S2023002', 
-    grade: '10',
-    gender: 'Female',
-    contactNo: '(555) 234-5678',
-    email: 'maria.garcia@example.com',
-    guardian: 'Carlos Garcia',
-    status: 'Enrolled',
-    balance: 0,
-  },
-  { 
-    id: '3', 
-    name: 'James Johnson', 
-    studentId: 'S2023003', 
-    grade: '11',
-    gender: 'Male',
-    contactNo: '(555) 345-6789',
-    email: 'james.johnson@example.com',
-    guardian: 'Patricia Johnson',
-    status: 'Enrolled',
-    balance: 850,
-  },
-  { 
-    id: '4', 
-    name: 'Emily Davis', 
-    studentId: 'S2023004', 
-    grade: '9',
-    gender: 'Female',
-    contactNo: '(555) 456-7890',
-    email: 'emily.davis@example.com',
-    guardian: 'Robert Davis',
-    status: 'Transferee',
-    balance: 1200,
-  },
-  { 
-    id: '5', 
-    name: 'Michael Wilson', 
-    studentId: 'S2023005', 
-    grade: '12',
-    gender: 'Male',
-    contactNo: '(555) 567-8901',
-    email: 'michael.wilson@example.com',
-    guardian: 'Susan Wilson',
-    status: 'Enrolled',
-    balance: 300,
-  },
-  { 
-    id: '6', 
-    name: 'Sofia Martinez', 
-    studentId: 'S2023006', 
-    grade: '10',
-    gender: 'Female',
-    contactNo: '(555) 678-9012',
-    email: 'sofia.martinez@example.com',
-    guardian: 'Juan Martinez',
-    status: 'Pending',
-    balance: 750,
-  },
-  { 
-    id: '7', 
-    name: 'Daniel Thompson', 
-    studentId: 'S2023007', 
-    grade: '9',
-    gender: 'Male',
-    contactNo: '(555) 789-0123',
-    email: 'daniel.thompson@example.com',
-    guardian: 'Elizabeth Thompson',
-    status: 'Enrolled',
-    balance: 0,
-  },
-  { 
-    id: '8', 
-    name: 'Olivia Johnson', 
-    studentId: 'S2023008', 
-    grade: '11',
-    gender: 'Female',
-    contactNo: '(555) 890-1234',
-    email: 'olivia.johnson@example.com',
-    guardian: 'David Johnson',
-    status: 'Enrolled',
-    balance: 550,
-  },
-  { 
-    id: '9', 
-    name: 'William Brown', 
-    studentId: 'S2023009', 
-    grade: '10',
-    gender: 'Male',
-    contactNo: '(555) 901-2345',
-    email: 'william.brown@example.com',
-    guardian: 'Jennifer Brown',
-    status: 'Transferee',
-    balance: 900,
-  },
-  { 
-    id: '10', 
-    name: 'Emma White', 
-    studentId: 'S2023010', 
-    grade: '12',
-    gender: 'Female',
-    contactNo: '(555) 012-3456',
-    email: 'emma.white@example.com',
-    guardian: 'Michael White',
-    status: 'Enrolled',
-    balance: 150,
-  },
+const studentsData = [
+  { id: '1', name: 'John Doe', grade: '10', section: 'A', gender: 'Male', contact: '555-1234' },
+  { id: '2', name: 'Jane Smith', grade: '11', section: 'B', gender: 'Female', contact: '555-5678' },
+  { id: '3', name: 'Michael Johnson', grade: '9', section: 'C', gender: 'Male', contact: '555-9012' },
+  { id: '4', name: 'Emily Brown', grade: '12', section: 'A', gender: 'Female', contact: '555-3456' },
+  { id: '5', name: 'David Wilson', grade: '10', section: 'B', gender: 'Male', contact: '555-7890' },
 ];
 
-// Function to format currency
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0
-  }).format(amount);
-};
-
-const Students = () => {
-  const { checkPermission } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [selectedGrade, setSelectedGrade] = useState<string>('all');
-  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isAddStudentOpen, setIsAddStudentOpen] = useState(false);
-  
-  const itemsPerPage = 8;
-  
-  // Filter students based on search query and filters
-  const filteredStudents = mockStudents.filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         student.studentId.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = selectedStatus === 'all' || student.status === selectedStatus;
-    const matchesGrade = selectedGrade === 'all' || student.grade === selectedGrade;
-    
-    return matchesSearch && matchesStatus && matchesGrade;
+const StudentsPage = () => {
+  const [students, setStudents] = useState(studentsData);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    grade: '',
+    section: '',
+    gender: '',
+    contact: ''
   });
-  
-  // Paginate students
-  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
-  const paginatedStudents = filteredStudents.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+  const { toast } = useToast();
+
+  const filteredStudents = students.filter(student => 
+    student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.grade.includes(searchTerm) ||
+    student.section.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  
-  // Handle checkbox selection
-  const handleSelectAll = () => {
-    if (selectedStudents.length === paginatedStudents.length) {
-      setSelectedStudents([]);
-    } else {
-      setSelectedStudents(paginatedStudents.map(student => student.id));
-    }
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
-  
-  const handleSelectOne = (studentId: string) => {
-    if (selectedStudents.includes(studentId)) {
-      setSelectedStudents(selectedStudents.filter(id => id !== studentId));
-    } else {
-      setSelectedStudents([...selectedStudents, studentId]);
-    }
+
+  const handleSelectChange = (name, value) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
-  
-  // For new student form
-  const form = useForm({
-    defaultValues: {
+
+  const handleAddStudent = () => {
+    // Validate form
+    if (!formData.name || !formData.grade || !formData.section || !formData.gender || !formData.contact) {
+      toast({
+        title: "Error",
+        description: "Please fill all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (selectedStudent) {
+      // Update existing student
+      const updatedStudents = students.map(student => 
+        student.id === selectedStudent.id ? { ...formData, id: student.id } : student
+      );
+      setStudents(updatedStudents);
+      toast({
+        title: "Success",
+        description: "Student updated successfully",
+      });
+    } else {
+      // Add new student
+      const newStudent = {
+        id: (students.length + 1).toString(),
+        ...formData
+      };
+      setStudents([...students, newStudent]);
+      toast({
+        title: "Success",
+        description: "Student added successfully",
+      });
+    }
+    
+    // Reset form and close dialog
+    setFormData({
       name: '',
       grade: '',
+      section: '',
       gender: '',
-      contactNo: '',
-      email: '',
-      guardian: '',
-    },
-  });
-  
-  const onSubmit = (data: any) => {
-    console.log(data);
-    toast({
-      title: 'Student added',
-      description: `${data.name} has been successfully added.`,
+      contact: ''
     });
-    setIsAddStudentOpen(false);
-    form.reset();
+    setSelectedStudent(null);
+    setIsAddDialogOpen(false);
   };
-  
-  // Status badge component
-  const StatusBadge = ({ status }: { status: string }) => {
-    const getStatusStyles = () => {
-      switch (status) {
-        case 'Enrolled':
-          return 'bg-green-100 text-green-800 hover:bg-green-200';
-        case 'Pending':
-          return 'bg-amber-100 text-amber-800 hover:bg-amber-200';
-        case 'Transferee':
-          return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
-        default:
-          return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
-      }
-    };
-    
-    return (
-      <Badge variant="outline" className={cn(
-        "rounded-full font-normal",
-        getStatusStyles()
-      )}>
-        {status}
-      </Badge>
-    );
+
+  const handleEditStudent = (student) => {
+    setSelectedStudent(student);
+    setFormData({
+      name: student.name,
+      grade: student.grade,
+      section: student.section,
+      gender: student.gender,
+      contact: student.contact
+    });
+    setIsAddDialogOpen(true);
   };
-  
+
   return (
     <MainLayout>
       <PageHeader 
-        title="Students"
-        description="Manage and view all student records"
-      >
-        {checkPermission([UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.REGISTRAR]) && (
-          <Dialog open={isAddStudentOpen} onOpenChange={setIsAddStudentOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-1">
-                <Plus className="h-4 w-4" />
-                Add Student
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Add New Student</DialogTitle>
-                <DialogDescription>
-                  Enter the student's information below to create a new record.
-                </DialogDescription>
-              </DialogHeader>
-              
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Full Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="John Doe" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="grade"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Grade Level</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select grade" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {['9', '10', '11', '12'].map((grade) => (
-                                <SelectItem key={grade} value={grade}>
-                                  Grade {grade}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="gender"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Gender</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select gender" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Male">Male</SelectItem>
-                              <SelectItem value="Female">Female</SelectItem>
-                              <SelectItem value="Other">Other</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="contactNo"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Contact Number</FormLabel>
-                          <FormControl>
-                            <Input placeholder="(555) 123-4567" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input placeholder="student@example.com" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  
-                  <FormField
-                    control={form.control}
-                    name="guardian"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Guardian/Parent Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Mary Smith" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <DialogFooter>
-                    <Button type="submit">Add Student</Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-        )}
-      </PageHeader>
+        title="Students" 
+        description="Manage all student records"
+      />
       
-      <Card className="animate-fade-in">
-        <CardHeader className="px-6">
-          <div className="flex flex-col md:flex-row justify-between gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-2 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by name or ID"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="pl-8"
-              />
+      <div className="flex justify-between items-center mb-6">
+        <div className="relative w-64">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+          <Input
+            placeholder="Search students..."
+            className="pl-10"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Student
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{selectedStudent ? 'Edit Student' : 'Add New Student'}</DialogTitle>
+              <DialogDescription>
+                Fill in the details for the student record.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">Name</Label>
+                <Input 
+                  id="name" 
+                  name="name" 
+                  value={formData.name} 
+                  onChange={handleInputChange} 
+                  className="col-span-3" 
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="grade" className="text-right">Grade</Label>
+                <Select 
+                  value={formData.grade} 
+                  onValueChange={(value) => handleSelectChange('grade', value)}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select grade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="9">Grade 9</SelectItem>
+                    <SelectItem value="10">Grade 10</SelectItem>
+                    <SelectItem value="11">Grade 11</SelectItem>
+                    <SelectItem value="12">Grade 12</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="section" className="text-right">Section</Label>
+                <Select 
+                  value={formData.section} 
+                  onValueChange={(value) => handleSelectChange('section', value)}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select section" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="A">Section A</SelectItem>
+                    <SelectItem value="B">Section B</SelectItem>
+                    <SelectItem value="C">Section C</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="gender" className="text-right">Gender</Label>
+                <Select 
+                  value={formData.gender} 
+                  onValueChange={(value) => handleSelectChange('gender', value)}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Male">Male</SelectItem>
+                    <SelectItem value="Female">Female</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="contact" className="text-right">Contact</Label>
+                <Input 
+                  id="contact" 
+                  name="contact" 
+                  value={formData.contact} 
+                  onChange={handleInputChange} 
+                  className="col-span-3" 
+                />
+              </div>
             </div>
-            
-            <div className="flex flex-wrap gap-2">
-              <Select value={selectedGrade} onValueChange={setSelectedGrade}>
-                <SelectTrigger className="w-[130px]">
-                  <div className="flex items-center">
-                    <GraduationCap className="mr-2 h-4 w-4" />
-                    <span>{selectedGrade === 'all' ? 'All Grades' : `Grade ${selectedGrade}`}</span>
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Grades</SelectItem>
-                  <SelectItem value="9">Grade 9</SelectItem>
-                  <SelectItem value="10">Grade 10</SelectItem>
-                  <SelectItem value="11">Grade 11</SelectItem>
-                  <SelectItem value="12">Grade 12</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger className="w-[130px]">
-                  <div className="flex items-center">
-                    <Filter className="mr-2 h-4 w-4" />
-                    <span>{selectedStatus === 'all' ? 'All Status' : selectedStatus}</span>
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="Enrolled">Enrolled</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="Transferee">Transferee</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Button variant="outline" size="icon">
-                <FileText className="h-4 w-4" />
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setIsAddDialogOpen(false);
+                setSelectedStudent(null);
+                setFormData({
+                  name: '',
+                  grade: '',
+                  section: '',
+                  gender: '',
+                  contact: ''
+                });
+              }}>
+                Cancel
               </Button>
-            </div>
-          </div>
-        </CardHeader>
-        
-        <CardContent className="px-6">
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[40px]">
-                    <Checkbox 
-                      checked={
-                        paginatedStudents.length > 0 && 
-                        selectedStudents.length === paginatedStudents.length
-                      }
-                      onCheckedChange={handleSelectAll}
-                      aria-label="Select all"
-                    />
-                  </TableHead>
-                  <TableHead>Student</TableHead>
-                  <TableHead>ID Number</TableHead>
-                  <TableHead>Grade</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Balance</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+              <Button onClick={handleAddStudent}>Save</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <Table>
+          <TableCaption>A list of all students</TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Grade</TableHead>
+              <TableHead>Section</TableHead>
+              <TableHead>Gender</TableHead>
+              <TableHead>Contact</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredStudents.length > 0 ? (
+              filteredStudents.map((student) => (
+                <TableRow key={student.id}>
+                  <TableCell className="font-medium">{student.name}</TableCell>
+                  <TableCell>{student.grade}</TableCell>
+                  <TableCell>{student.section}</TableCell>
+                  <TableCell>{student.gender}</TableCell>
+                  <TableCell>{student.contact}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="sm" onClick={() => handleEditStudent(student)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedStudents.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center">
-                      No students found.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  paginatedStudents.map((student) => (
-                    <TableRow key={student.id} className="group animate-fade-in">
-                      <TableCell>
-                        <Checkbox 
-                          checked={selectedStudents.includes(student.id)}
-                          onCheckedChange={() => handleSelectOne(student.id)}
-                          aria-label={`Select ${student.name}`}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium">{student.name}</div>
-                        <div className="text-xs text-muted-foreground">{student.email}</div>
-                      </TableCell>
-                      <TableCell>{student.studentId}</TableCell>
-                      <TableCell>{student.grade}</TableCell>
-                      <TableCell>
-                        <StatusBadge status={student.status} />
-                      </TableCell>
-                      <TableCell>
-                        <span className={cn(
-                          student.balance > 0 ? "text-red-600" : "text-green-600"
-                        )}>
-                          {formatCurrency(student.balance)}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Open menu</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-[160px]">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="cursor-pointer">
-                              <Eye className="mr-2 h-4 w-4" />
-                              View Details
-                            </DropdownMenuItem>
-                            {checkPermission([UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.REGISTRAR]) && (
-                              <DropdownMenuItem className="cursor-pointer">
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit Student
-                              </DropdownMenuItem>
-                            )}
-                            {checkPermission([UserRole.SUPER_ADMIN, UserRole.ADMIN]) && (
-                              <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive">
-                                <Trash className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-        
-        <CardFooter className="flex items-center justify-between px-6">
-          <div className="text-sm text-muted-foreground">
-            Showing <span className="font-medium">{paginatedStudents.length}</span> of{" "}
-            <span className="font-medium">{filteredStudents.length}</span> students
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              <span className="sr-only">Previous page</span>
-            </Button>
-            <div className="text-sm">
-              Page {currentPage} of {totalPages || 1}
-            </div>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages || totalPages === 0}
-            >
-              <ChevronRight className="h-4 w-4" />
-              <span className="sr-only">Next page</span>
-            </Button>
-          </div>
-        </CardFooter>
-      </Card>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-6">
+                  No students found
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </MainLayout>
   );
 };
 
-export default Students;
+export default StudentsPage;

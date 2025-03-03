@@ -8,6 +8,11 @@ import { AuthProvider } from "@/context/AuthContext";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Students from "./pages/Students";
+import Enrollment from "./pages/Enrollment";
+import Accounts from "./pages/Accounts";
+import Employees from "./pages/Employees";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,11 +28,11 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/students" element={<div>Students Page - Coming Soon</div>} />
-            <Route path="/enrollment" element={<div>Enrollment Page - Coming Soon</div>} />
-            <Route path="/accounts" element={<div>Accounts Page - Coming Soon</div>} />
-            <Route path="/employees" element={<div>Employees Page - Coming Soon</div>} />
-            <Route path="/settings" element={<div>Settings Page - Coming Soon</div>} />
+            <Route path="/students" element={<Students />} />
+            <Route path="/enrollment" element={<Enrollment />} />
+            <Route path="/accounts" element={<Accounts />} />
+            <Route path="/employees" element={<Employees />} />
+            <Route path="/settings" element={<Settings />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
