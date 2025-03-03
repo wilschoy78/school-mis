@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Sidebar } from './Sidebar';
+import { Sidebar } from './sidebar';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate } from 'react-router-dom';
