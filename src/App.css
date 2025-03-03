@@ -1,10 +1,13 @@
+
+/* Remove conflicting styles that could cause padding issues */
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  text-align: initial;
 }
 
+/* Keep the rest of the styles unchanged */
 .logo {
   height: 6em;
   padding: 1.5em;
