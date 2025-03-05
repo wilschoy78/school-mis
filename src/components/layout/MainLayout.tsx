@@ -45,7 +45,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
     <div className="flex min-h-screen w-full">
       <Sidebar />
       <main className={cn(
-        "flex-1 transition-all duration-300",
+        "flex-1 transition-all duration-300 px-6",
         isMobile ? "w-full" : "ml-0",
         className
       )}>
