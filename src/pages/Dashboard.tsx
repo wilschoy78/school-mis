@@ -14,15 +14,17 @@ const Dashboard = () => {
   
   return (
     <MainLayout>
-      <PageHeader 
-        title="Dashboard" 
-        description="Welcome to your school management dashboard"
-      />
-      
-      <WelcomeCard user={user} />
-      <QuickStats />
-      <QuickAccess />
-      <ActivityAndEvents />
+      <div className="py-6">
+        <PageHeader 
+          title="Dashboard" 
+          description="Welcome to your school management dashboard"
+        />
+        
+        <WelcomeCard user={user} />
+        <QuickStats />
+        <QuickAccess />
+        <ActivityAndEvents />
+      </div>
     </MainLayout>
   );
 };
