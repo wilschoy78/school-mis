@@ -15,7 +15,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <BookOpen className="h-6 w-6 text-school-500" />
-            <span className="text-xl font-semibold">EduManager</span>
+            <span className="text-xl font-semibold">Alicia MIS</span>
           </div>
           <div className="space-x-2">
             {isAuthenticated ? (
@@ -120,10 +120,10 @@ const Index = () => {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
               <BookOpen className="h-6 w-6 text-white" />
-              <span className="text-xl font-semibold text-white">EduManager</span>
+              <span className="text-xl font-semibold text-white">Alicia MIS</span>
             </div>
             <div className="text-sm">
-              &copy; {new Date().getFullYear()} EduManager School Management System. All rights reserved.
+              &copy; {new Date().getFullYear()} Alicia School Management System. All rights reserved.
             </div>
           </div>
         </div>

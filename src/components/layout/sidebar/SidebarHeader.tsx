@@ -39,7 +39,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
         {!collapsed && (
           <Link to="/dashboard" className="text-lg font-semibold text-sidebar-foreground flex items-center gap-2">
             <BookOpen className="w-6 h-6 text-school-500" />
-            <span className="animate-fade-in">EduManager</span>
+            <span className="animate-fade-in">Alicia MIS</span>
           </Link>
         )}
         {collapsed && (

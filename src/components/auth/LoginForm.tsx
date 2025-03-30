@@ -73,7 +73,7 @@ export const LoginForm: React.FC = () => {
             <BookOpen className="h-6 w-6 text-primary" />
           </div>
         </div>
-        <CardTitle className="text-2xl">Sign in to EduManager</CardTitle>
+        <CardTitle className="text-2xl">Sign in to Alicia MIS</CardTitle>
         <CardDescription>Enter your credentials to access your account</CardDescription>
       </CardHeader>
       <CardContent>
