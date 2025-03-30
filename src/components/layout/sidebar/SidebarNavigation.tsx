@@ -8,7 +8,8 @@ import {
   DollarSign, 
   Settings, 
   BookOpen,
-  Library as LibraryIcon
+  Library as LibraryIcon,
+  UserCog
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth, UserRole, User } from '@/context/AuthContext';
@@ -33,7 +34,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
       name: 'Dashboard',
       path: '/dashboard',
       icon: <LayoutDashboard className="w-5 h-5" />,
-      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.REGISTRAR, UserRole.CASHIER, UserRole.TEACHER],
+      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.REGISTRAR, UserRole.CASHIER, UserRole.TEACHER, UserRole.LIBRARIAN, UserRole.STUDENT],
     },
     {
       name: 'Students',
@@ -60,16 +61,22 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
       roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
     },
     {
+      name: 'User Management',
+      path: '/users',
+      icon: <UserCog className="w-5 h-5" />,
+      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
+    },
+    {
       name: 'Library',
       path: '/library',
       icon: <LibraryIcon className="w-5 h-5" />,
-      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.TEACHER, UserRole.REGISTRAR],
+      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.TEACHER, UserRole.LIBRARIAN, UserRole.STUDENT],
     },
     {
       name: 'Settings',
       path: '/settings',
       icon: <Settings className="w-5 h-5" />,
-      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
+      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.LIBRARIAN, UserRole.TEACHER],
     },
   ].filter(item => checkPermission(item.roles));
 

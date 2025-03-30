@@ -12,8 +12,9 @@ import Students from "./pages/Students";
 import Enrollment from "./pages/Enrollment";
 import Accounts from "./pages/Accounts";
 import Employees from "./pages/Employees";
-import Library from "./pages/Library"; // Add Library import
+import Library from "./pages/Library";
 import Settings from "./pages/Settings";
+import Users from "./pages/Users";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,7 +34,8 @@ const App = () => (
             <Route path="/enrollment" element={<Enrollment />} />
             <Route path="/accounts" element={<Accounts />} />
             <Route path="/employees" element={<Employees />} />
-            <Route path="/library" element={<Library />} /> {/* Add Library route */}
+            <Route path="/library" element={<Library />} />
+            <Route path="/users" element={<Users />} />
             <Route path="/settings" element={<Settings />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

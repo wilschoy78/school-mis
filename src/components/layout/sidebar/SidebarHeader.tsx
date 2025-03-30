@@ -6,6 +6,12 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { User } from '@/context/AuthContext';
 
 interface SidebarHeaderProps {
@@ -63,21 +69,38 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
       <Separator className="bg-sidebar-border" />
 
       {/* User info */}
-      <div className={cn(
-        'flex items-center gap-3 p-4',
-        collapsed && 'justify-center'
-      )}>
-        <Avatar className="h-9 w-9 border border-sidebar-border">
-          <AvatarImage src={user.avatar} alt={user.name} />
-          <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-        </Avatar>
-        {!collapsed && (
+      {collapsed ? (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex justify-center p-4">
+                <Avatar className="h-9 w-9 border border-sidebar-border">
+                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                </Avatar>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <div className="flex flex-col">
+                <span className="font-medium">{user.name}</span>
+                <span className="text-xs text-muted-foreground capitalize">{user.role.replace('_', ' ')}</span>
+                {user.department && <span className="text-xs text-muted-foreground">{user.department}</span>}
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ) : (
+        <div className="flex items-center gap-3 p-4">
+          <Avatar className="h-9 w-9 border border-sidebar-border">
+            <AvatarImage src={user.avatar} alt={user.name} />
+            <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+          </Avatar>
           <div className="flex flex-col animate-fade-in">
             <span className="text-sm font-medium text-sidebar-foreground">{user.name}</span>
             <span className="text-xs text-sidebar-foreground/70 capitalize">{user.role.replace('_', ' ')}</span>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <Separator className="bg-sidebar-border" />
     </>

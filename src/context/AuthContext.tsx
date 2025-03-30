@@ -7,6 +7,7 @@ export enum UserRole {
   REGISTRAR = 'REGISTRAR',
   CASHIER = 'CASHIER',
   TEACHER = 'TEACHER',
+  LIBRARIAN = 'LIBRARIAN',
   STUDENT = 'STUDENT'
 }
 
@@ -16,6 +17,11 @@ export interface User {
   email: string;
   role: UserRole;
   avatar?: string;
+  department?: string;
+  position?: string;
+  phone?: string;
+  status?: 'Active' | 'Inactive' | 'On Leave';
+  joinDate?: Date;
 }
 
 interface AuthContextType {
@@ -25,6 +31,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   checkPermission: (allowedRoles: UserRole[]) => boolean;
+  updateUserProfile: (userData: Partial<User>) => void;
 }
 
 const initialState: AuthContextType = {
@@ -33,7 +40,8 @@ const initialState: AuthContextType = {
   isLoading: true,
   login: async () => false,
   logout: () => {},
-  checkPermission: () => false
+  checkPermission: () => false,
+  updateUserProfile: () => {}
 };
 
 const AuthContext = createContext<AuthContextType>(initialState);
@@ -71,13 +79,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Simulate network request
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Mock user data
+      // Mock user data with a role based on email
+      let role = UserRole.ADMIN;
+      if (email.includes('teacher')) {
+        role = UserRole.TEACHER;
+      } else if (email.includes('student')) {
+        role = UserRole.STUDENT;
+      } else if (email.includes('registrar')) {
+        role = UserRole.REGISTRAR;
+      } else if (email.includes('cashier')) {
+        role = UserRole.CASHIER;
+      } else if (email.includes('librarian')) {
+        role = UserRole.LIBRARIAN;
+      }
+      
       const mockUser: User = {
         id: '1',
-        name: 'Admin User',
+        name: email.split('@')[0].replace(/\./g, ' ').replace(/(\b\w)/g, (char) => char.toUpperCase()),
         email: email,
-        role: UserRole.ADMIN,
+        role: role,
         avatar: '',
+        status: 'Active',
+        joinDate: new Date(),
       };
       
       // Store user in localStorage
@@ -101,6 +124,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return allowedRoles.includes(user.role);
   };
 
+  const updateUserProfile = (userData: Partial<User>) => {
+    if (!user) return;
+    
+    const updatedUser = { ...user, ...userData };
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -110,6 +141,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         login,
         logout,
         checkPermission,
+        updateUserProfile
       }}
     >
       {children}
