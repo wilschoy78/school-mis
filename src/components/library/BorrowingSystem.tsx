@@ -168,7 +168,7 @@ export const BorrowingSystem: React.FC = () => {
   const handleReturn = (recordId: string) => {
     const updatedRecords = borrowRecords.map(record => {
       if (record.id === recordId) {
-        return { ...record, returnDate: new Date(), status: 'returned' };
+        return { ...record, returnDate: new Date(), status: 'returned' as const };
       }
       return record;
     });
@@ -187,7 +187,7 @@ export const BorrowingSystem: React.FC = () => {
     const today = new Date();
     const updatedRecords = borrowRecords.map(record => {
       if (record.status === 'borrowed' && isAfter(today, record.dueDate)) {
-        return { ...record, status: 'overdue' };
+        return { ...record, status: 'overdue' as const };
       }
       return record;
     });
