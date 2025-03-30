@@ -7,7 +7,8 @@ import {
   GraduationCap, 
   DollarSign, 
   Settings, 
-  BookOpen 
+  BookOpen,
+  Library as LibraryIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth, UserRole, User } from '@/context/AuthContext';
@@ -57,6 +58,12 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
       path: '/employees',
       icon: <Users className="w-5 h-5" />,
       roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
+    },
+    {
+      name: 'Library',
+      path: '/library',
+      icon: <LibraryIcon className="w-5 h-5" />,
+      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.TEACHER, UserRole.REGISTRAR],
     },
     {
       name: 'Settings',

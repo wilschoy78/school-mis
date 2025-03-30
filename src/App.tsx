@@ -12,6 +12,7 @@ import Students from "./pages/Students";
 import Enrollment from "./pages/Enrollment";
 import Accounts from "./pages/Accounts";
 import Employees from "./pages/Employees";
+import Library from "./pages/Library"; // Add Library import
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/enrollment" element={<Enrollment />} />
             <Route path="/accounts" element={<Accounts />} />
             <Route path="/employees" element={<Employees />} />
+            <Route path="/library" element={<Library />} /> {/* Add Library route */}
             <Route path="/settings" element={<Settings />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
