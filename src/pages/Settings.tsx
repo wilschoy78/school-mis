@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
 import { 
@@ -19,7 +18,37 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 
+export const SystemSettingsContext = React.createContext({
+  systemName: 'Alicia MIS',
+  updateSystemName: (name: string) => {}
+});
+
+export const useSystemSettings = () => React.useContext(SystemSettingsContext);
+
+export const SystemSettingsProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
+  const [systemName, setSystemName] = useState('Alicia MIS');
+  
+  const updateSystemName = (name: string) => {
+    setSystemName(name);
+    localStorage.setItem('systemName', name);
+  };
+  
+  React.useEffect(() => {
+    const savedName = localStorage.getItem('systemName');
+    if (savedName) {
+      setSystemName(savedName);
+    }
+  }, []);
+  
+  return (
+    <SystemSettingsContext.Provider value={{ systemName, updateSystemName }}>
+      {children}
+    </SystemSettingsContext.Provider>
+  );
+};
+
 const SettingsPage = () => {
+  const { systemName, updateSystemName } = useSystemSettings();
   const [schoolSettings, setSchoolSettings] = useState({
     name: 'Brightstar International School',
     shortName: 'Brightstar',
@@ -28,6 +57,7 @@ const SettingsPage = () => {
     address: '123 Education Way, Knowledge City, 12345',
     website: 'www.brightstar.edu',
     logo: '',
+    systemName: systemName,
     theme: 'light',
     academicYear: '2023-2024',
     timezone: 'UTC-5',
@@ -56,6 +86,10 @@ const SettingsPage = () => {
   const handleSchoolSettingsChange = (e) => {
     const { name, value } = e.target;
     setSchoolSettings(prev => ({ ...prev, [name]: value }));
+    
+    if (name === 'systemName') {
+      updateSystemName(value);
+    }
   };
 
   const handleSelectChange = (name, value) => {
@@ -76,7 +110,7 @@ const SettingsPage = () => {
   };
 
   const saveSchoolSettings = () => {
-    // In a real app, this would save to backend
+    updateSystemName(schoolSettings.systemName);
     toast({
       title: "Settings Saved",
       description: "School settings have been updated successfully."
@@ -84,7 +118,6 @@ const SettingsPage = () => {
   };
 
   const saveNotificationSettings = () => {
-    // In a real app, this would save to backend
     toast({
       title: "Settings Saved",
       description: "Notification preferences have been updated successfully."
@@ -92,7 +125,6 @@ const SettingsPage = () => {
   };
 
   const saveSecuritySettings = () => {
-    // In a real app, this would save to backend
     toast({
       title: "Settings Saved",
       description: "Security settings have been updated successfully."
@@ -113,7 +145,6 @@ const SettingsPage = () => {
           <TabsTrigger value="security">Security</TabsTrigger>
         </TabsList>
         
-        {/* School Settings Tab */}
         <TabsContent value="school">
           <Card>
             <CardHeader>
@@ -146,6 +177,17 @@ const SettingsPage = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
+                  <Label htmlFor="systemName">System Name</Label>
+                  <Input 
+                    id="systemName" 
+                    name="systemName"
+                    value={schoolSettings.systemName} 
+                    onChange={handleSchoolSettingsChange} 
+                    placeholder="e.g., Alicia MIS"
+                  />
+                  <p className="text-xs text-muted-foreground">This name appears in the sidebar and throughout the system</p>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="email">Email Address</Label>
                   <Input 
                     id="email" 
@@ -155,15 +197,16 @@ const SettingsPage = () => {
                     onChange={handleSchoolSettingsChange} 
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input 
-                    id="phone" 
-                    name="phone"
-                    value={schoolSettings.phone} 
-                    onChange={handleSchoolSettingsChange} 
-                  />
-                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input 
+                  id="phone" 
+                  name="phone"
+                  value={schoolSettings.phone} 
+                  onChange={handleSchoolSettingsChange} 
+                />
               </div>
               
               <div className="space-y-2">
@@ -269,7 +312,6 @@ const SettingsPage = () => {
           </Card>
         </TabsContent>
         
-        {/* Notifications Tab */}
         <TabsContent value="notifications">
           <Card>
             <CardHeader>
@@ -383,7 +425,6 @@ const SettingsPage = () => {
           </Card>
         </TabsContent>
         
-        {/* Security Tab */}
         <TabsContent value="security">
           <Card>
             <CardHeader>

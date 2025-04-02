@@ -13,6 +13,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { User } from '@/context/AuthContext';
+import { useSystemSettings } from '@/pages/Settings';
 
 interface SidebarHeaderProps {
   user: User;
@@ -27,6 +28,8 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
   toggleSidebar, 
   isMobile 
 }) => {
+  const { systemName } = useSystemSettings();
+  
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -45,7 +48,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
         {!collapsed && (
           <Link to="/dashboard" className="text-lg font-semibold text-sidebar-foreground flex items-center gap-2">
             <BookOpen className="w-6 h-6 text-school-500" />
-            <span className="animate-fade-in">Alicia MIS</span>
+            <span className="animate-fade-in">{systemName}</span>
           </Link>
         )}
         {collapsed && (
