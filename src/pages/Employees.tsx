@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from '@/components/ui/badge';
+import DataPagination from '@/components/common/DataPagination';
 
 const employeesData = [
   { 
@@ -76,10 +76,42 @@ const employeesData = [
     status: 'Active',
     avatar: ''
   },
+  { 
+    id: '6', 
+    name: 'Jennifer Thomas', 
+    email: 'jennifer.thomas@school.edu', 
+    phone: '555-5432',
+    position: 'Physical Education Teacher', 
+    department: 'Physical Education',
+    joiningDate: new Date(2021, 6, 5),
+    status: 'Active',
+    avatar: ''
+  },
+  { 
+    id: '7', 
+    name: 'Daniel Harris', 
+    email: 'daniel.harris@school.edu', 
+    phone: '555-8765',
+    position: 'IT Coordinator', 
+    department: 'Administration',
+    joiningDate: new Date(2020, 3, 12),
+    status: 'Active',
+    avatar: ''
+  },
+  { 
+    id: '8', 
+    name: 'Melissa Garcia', 
+    email: 'melissa.garcia@school.edu', 
+    phone: '555-9876',
+    position: 'Counselor', 
+    department: 'Counseling',
+    joiningDate: new Date(2022, 1, 15),
+    status: 'On Leave',
+    avatar: ''
+  },
 ];
 
-const teachersData = employeesData.filter(emp => emp.position.includes('Teacher'));
-const staffData = employeesData.filter(emp => !emp.position.includes('Teacher'));
+const ITEMS_PER_PAGE = 5;
 
 const EmployeesPage = () => {
   const [activeTab, setActiveTab] = useState('all');
@@ -87,6 +119,7 @@ const EmployeesPage = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [employees, setEmployees] = useState(employeesData);
+  const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -97,7 +130,6 @@ const EmployeesPage = () => {
   });
   const { toast } = useToast();
 
-  // Filter employees based on active tab and search term
   let displayedEmployees = employees;
   if (activeTab === 'teachers') {
     displayedEmployees = employees.filter(emp => emp.position.includes('Teacher'));
@@ -112,6 +144,16 @@ const EmployeesPage = () => {
     employee.position.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filteredEmployees.length / ITEMS_PER_PAGE);
+  const paginatedEmployees = filteredEmployees.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE, 
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, activeTab]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -122,7 +164,6 @@ const EmployeesPage = () => {
   };
 
   const handleAddEmployee = () => {
-    // Validate form
     if (!formData.name || !formData.email || !formData.position || !formData.department) {
       toast({
         title: "Error",
@@ -133,14 +174,13 @@ const EmployeesPage = () => {
     }
 
     if (selectedEmployee) {
-      // Update existing employee
       const updatedEmployees = employees.map(employee => 
         employee.id === selectedEmployee.id 
           ? { 
               ...employee, 
               ...formData,
-              joiningDate: employee.joiningDate, // Keep the original joining date
-              avatar: employee.avatar // Keep the original avatar
+              joiningDate: employee.joiningDate,
+              avatar: employee.avatar
             } 
           : employee
       );
@@ -150,12 +190,11 @@ const EmployeesPage = () => {
         description: "Employee updated successfully",
       });
     } else {
-      // Add new employee
       const newEmployee = {
         id: (employees.length + 1).toString(),
         ...formData,
-        joiningDate: new Date(), // Current date as joining date
-        avatar: '' // Empty avatar for new employee
+        joiningDate: new Date(),
+        avatar: ''
       };
       setEmployees([...employees, newEmployee]);
       toast({
@@ -164,7 +203,6 @@ const EmployeesPage = () => {
       });
     }
     
-    // Reset form and close dialog
     setFormData({
       name: '',
       email: '',
@@ -364,26 +402,35 @@ const EmployeesPage = () => {
 
         <TabsContent value="all" className="mt-0">
           <EmployeeTable 
-            employees={filteredEmployees} 
+            employees={paginatedEmployees} 
             handleEdit={handleEditEmployee} 
             getInitials={getInitials}
             getStatusBadge={getStatusBadge}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
           />
         </TabsContent>
         <TabsContent value="teachers" className="mt-0">
           <EmployeeTable 
-            employees={filteredEmployees} 
+            employees={paginatedEmployees} 
             handleEdit={handleEditEmployee} 
             getInitials={getInitials}
             getStatusBadge={getStatusBadge}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
           />
         </TabsContent>
         <TabsContent value="staff" className="mt-0">
           <EmployeeTable 
-            employees={filteredEmployees} 
+            employees={paginatedEmployees} 
             handleEdit={handleEditEmployee} 
             getInitials={getInitials}
             getStatusBadge={getStatusBadge}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
           />
         </TabsContent>
       </Tabs>
@@ -391,71 +438,89 @@ const EmployeesPage = () => {
   );
 };
 
-const EmployeeTable = ({ employees, handleEdit, getInitials, getStatusBadge }) => {
+const EmployeeTable = ({ 
+  employees, 
+  handleEdit, 
+  getInitials, 
+  getStatusBadge,
+  currentPage,
+  totalPages,
+  onPageChange
+}) => {
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
-      <Table>
-        <TableCaption>List of employees</TableCaption>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Employee</TableHead>
-            <TableHead>Position</TableHead>
-            <TableHead>Department</TableHead>
-            <TableHead>Contact</TableHead>
-            <TableHead>Joining Date</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {employees.length > 0 ? (
-            employees.map((employee) => (
-              <TableRow key={employee.id}>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarImage src={employee.avatar} alt={employee.name} />
-                      <AvatarFallback>{getInitials(employee.name)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium">{employee.name}</p>
-                      <p className="text-sm text-gray-500">{employee.email}</p>
+    <>
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <Table>
+          <TableCaption>List of employees</TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Employee</TableHead>
+              <TableHead>Position</TableHead>
+              <TableHead>Department</TableHead>
+              <TableHead>Contact</TableHead>
+              <TableHead>Joining Date</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {employees.length > 0 ? (
+              employees.map((employee) => (
+                <TableRow key={employee.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarImage src={employee.avatar} alt={employee.name} />
+                        <AvatarFallback>{getInitials(employee.name)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium">{employee.name}</p>
+                        <p className="text-sm text-gray-500">{employee.email}</p>
+                      </div>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell>{employee.position}</TableCell>
-                <TableCell>{employee.department}</TableCell>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <div className="flex items-center">
-                      <Mail className="h-4 w-4 mr-2 text-gray-500" />
-                      <span className="text-sm">{employee.email}</span>
+                  </TableCell>
+                  <TableCell>{employee.position}</TableCell>
+                  <TableCell>{employee.department}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <div className="flex items-center">
+                        <Mail className="h-4 w-4 mr-2 text-gray-500" />
+                        <span className="text-sm">{employee.email}</span>
+                      </div>
+                      <div className="flex items-center mt-1">
+                        <Phone className="h-4 w-4 mr-2 text-gray-500" />
+                        <span className="text-sm">{employee.phone}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center mt-1">
-                      <Phone className="h-4 w-4 mr-2 text-gray-500" />
-                      <span className="text-sm">{employee.phone}</span>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>{format(employee.joiningDate, 'MMM d, yyyy')}</TableCell>
-                <TableCell>{getStatusBadge(employee.status)}</TableCell>
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="sm" onClick={() => handleEdit(employee)}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
+                  </TableCell>
+                  <TableCell>{format(employee.joiningDate, 'MMM d, yyyy')}</TableCell>
+                  <TableCell>{getStatusBadge(employee.status)}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="sm" onClick={() => handleEdit(employee)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-6">
+                  No employees found
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={7} className="text-center py-6">
-                No employees found
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      
+      <div className="flex justify-center mt-4">
+        <DataPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+        />
+      </div>
+    </>
   );
 };
 

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -15,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Search, Pencil } from 'lucide-react';
+import DataPagination from '@/components/common/DataPagination';
 
 const studentsData = [
   { id: '1', name: 'John Doe', grade: '10', section: 'A', gender: 'Male', contact: '555-1234' },
@@ -22,13 +22,23 @@ const studentsData = [
   { id: '3', name: 'Michael Johnson', grade: '9', section: 'C', gender: 'Male', contact: '555-9012' },
   { id: '4', name: 'Emily Brown', grade: '12', section: 'A', gender: 'Female', contact: '555-3456' },
   { id: '5', name: 'David Wilson', grade: '10', section: 'B', gender: 'Male', contact: '555-7890' },
+  { id: '6', name: 'Sarah Davis', grade: '11', section: 'A', gender: 'Female', contact: '555-2468' },
+  { id: '7', name: 'James Miller', grade: '9', section: 'B', gender: 'Male', contact: '555-1357' },
+  { id: '8', name: 'Jessica Wilson', grade: '12', section: 'C', gender: 'Female', contact: '555-3690' },
+  { id: '9', name: 'Robert Taylor', grade: '10', section: 'A', gender: 'Male', contact: '555-4812' },
+  { id: '10', name: 'Linda Anderson', grade: '11', section: 'B', gender: 'Female', contact: '555-9753' },
+  { id: '11', name: 'Thomas Martinez', grade: '9', section: 'C', gender: 'Male', contact: '555-8642' },
+  { id: '12', name: 'Patricia Lewis', grade: '12', section: 'A', gender: 'Female', contact: '555-7531' },
 ];
+
+const ITEMS_PER_PAGE = 5;
 
 const StudentsPage = () => {
   const [students, setStudents] = useState(studentsData);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState({
     name: '',
     grade: '',
@@ -44,6 +54,16 @@ const StudentsPage = () => {
     student.section.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE);
+  const paginatedStudents = filteredStudents.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE, 
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -54,7 +74,6 @@ const StudentsPage = () => {
   };
 
   const handleAddStudent = () => {
-    // Validate form
     if (!formData.name || !formData.grade || !formData.section || !formData.gender || !formData.contact) {
       toast({
         title: "Error",
@@ -65,7 +84,6 @@ const StudentsPage = () => {
     }
 
     if (selectedStudent) {
-      // Update existing student
       const updatedStudents = students.map(student => 
         student.id === selectedStudent.id ? { ...formData, id: student.id } : student
       );
@@ -75,7 +93,6 @@ const StudentsPage = () => {
         description: "Student updated successfully",
       });
     } else {
-      // Add new student
       const newStudent = {
         id: (students.length + 1).toString(),
         ...formData
@@ -87,7 +104,6 @@ const StudentsPage = () => {
       });
     }
     
-    // Reset form and close dialog
     setFormData({
       name: '',
       grade: '',
@@ -247,8 +263,8 @@ const StudentsPage = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredStudents.length > 0 ? (
-              filteredStudents.map((student) => (
+            {paginatedStudents.length > 0 ? (
+              paginatedStudents.map((student) => (
                 <TableRow key={student.id}>
                   <TableCell className="font-medium">{student.name}</TableCell>
                   <TableCell>{student.grade}</TableCell>
@@ -271,6 +287,14 @@ const StudentsPage = () => {
             )}
           </TableBody>
         </Table>
+      </div>
+      
+      <div className="flex justify-center mt-4">
+        <DataPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </MainLayout>
   );

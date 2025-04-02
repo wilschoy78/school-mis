@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,8 +27,8 @@ import { UserRole } from '@/context/AuthContext';
 import { useForm } from 'react-hook-form';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import DataPagination from '@/components/common/DataPagination';
 
-// Mock user data
 const initialUsers = [
   {
     id: '1',
@@ -90,8 +89,50 @@ const initialUsers = [
     status: 'Active',
     lastLogin: new Date(2023, 7, 14, 16, 30),
     avatar: ''
+  },
+  {
+    id: '7',
+    name: 'Mark Johnson',
+    email: 'mark.johnson@school.edu',
+    role: UserRole.TEACHER,
+    department: 'Physical Education',
+    status: 'Active',
+    lastLogin: new Date(2023, 7, 13, 10, 45),
+    avatar: ''
+  },
+  {
+    id: '8',
+    name: 'Susan Williams',
+    email: 'susan.williams@school.edu',
+    role: UserRole.CASHIER,
+    department: 'Administration',
+    status: 'Active',
+    lastLogin: new Date(2023, 7, 14, 8, 15),
+    avatar: ''
+  },
+  {
+    id: '9',
+    name: 'Kevin Harris',
+    email: 'kevin.harris@school.edu',
+    role: UserRole.REGISTRAR,
+    department: 'Administration',
+    status: 'Active',
+    lastLogin: new Date(2023, 7, 12, 14, 30),
+    avatar: ''
+  },
+  {
+    id: '10',
+    name: 'Emma Garcia',
+    email: 'emma.garcia@school.edu',
+    role: UserRole.STUDENT,
+    department: 'Grade 11',
+    status: 'Inactive',
+    lastLogin: new Date(2023, 6, 25, 16, 10),
+    avatar: ''
   }
 ];
+
+const ITEMS_PER_PAGE = 5;
 
 interface UserForm {
   name: string;
@@ -107,6 +148,7 @@ const UsersPage = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [users, setUsers] = useState(initialUsers);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   
   const form = useForm<UserForm>({
     defaultValues: {
@@ -121,12 +163,10 @@ const UsersPage = () => {
   const { toast } = useToast();
 
   const filteredUsers = users.filter(user => {
-    // Filter by tab
     if (activeTab !== 'all' && activeTab !== user.role.toLowerCase()) {
       return false;
     }
     
-    // Filter by search
     if (
       searchTerm &&
       !user.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -139,9 +179,18 @@ const UsersPage = () => {
     return true;
   });
 
+  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
+  const paginatedUsers = filteredUsers.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE, 
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, activeTab]);
+
   const handleSubmit = (data: UserForm) => {
     if (selectedUser) {
-      // Update existing user
       const updatedUsers = users.map(user => 
         user.id === selectedUser.id ? { ...selectedUser, ...data } : user
       );
@@ -151,7 +200,6 @@ const UsersPage = () => {
         description: `${data.name}'s account has been updated.`
       });
     } else {
-      // Add new user
       const newUser = {
         id: (users.length + 1).toString(),
         ...data,
@@ -383,42 +431,57 @@ const UsersPage = () => {
 
         <TabsContent value="all" className="mt-0">
           <UsersTable 
-            users={filteredUsers} 
+            users={paginatedUsers} 
             handleEdit={handleEdit} 
             getInitials={getInitials}
             getRoleBadge={getRoleBadge}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
           />
         </TabsContent>
         <TabsContent value="admin" className="mt-0">
           <UsersTable 
-            users={filteredUsers} 
+            users={paginatedUsers} 
             handleEdit={handleEdit} 
             getInitials={getInitials}
             getRoleBadge={getRoleBadge}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
           />
         </TabsContent>
         <TabsContent value="teacher" className="mt-0">
           <UsersTable 
-            users={filteredUsers} 
+            users={paginatedUsers} 
             handleEdit={handleEdit} 
             getInitials={getInitials}
             getRoleBadge={getRoleBadge}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
           />
         </TabsContent>
         <TabsContent value="student" className="mt-0">
           <UsersTable 
-            users={filteredUsers} 
+            users={paginatedUsers} 
             handleEdit={handleEdit} 
             getInitials={getInitials}
             getRoleBadge={getRoleBadge}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
           />
         </TabsContent>
         <TabsContent value="staff" className="mt-0">
           <UsersTable 
-            users={filteredUsers} 
+            users={paginatedUsers} 
             handleEdit={handleEdit} 
             getInitials={getInitials}
             getRoleBadge={getRoleBadge}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
           />
         </TabsContent>
       </Tabs>
@@ -426,78 +489,96 @@ const UsersPage = () => {
   );
 };
 
-const UsersTable = ({ users, handleEdit, getInitials, getRoleBadge }) => {
+const UsersTable = ({ 
+  users, 
+  handleEdit, 
+  getInitials, 
+  getRoleBadge,
+  currentPage,
+  totalPages,
+  onPageChange
+}) => {
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
-      <Table>
-        <TableCaption>List of system users</TableCaption>
-        <TableHeader>
-          <TableRow>
-            <TableHead>User</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Department</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Last Login</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {users.length > 0 ? (
-            users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarImage src={user.avatar} alt={user.name} />
-                      <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium">{user.name}</p>
-                      <p className="text-sm text-gray-500">{user.email}</p>
+    <>
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <Table>
+          <TableCaption>List of system users</TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead>User</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Department</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Last Login</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {users.length > 0 ? (
+              users.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarImage src={user.avatar} alt={user.name} />
+                        <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium">{user.name}</p>
+                        <p className="text-sm text-gray-500">{user.email}</p>
+                      </div>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell>{getRoleBadge(user.role)}</TableCell>
-                <TableCell>{user.department}</TableCell>
-                <TableCell>
-                  <Badge variant={user.status === 'Active' ? 'default' : 'secondary'}>
-                    {user.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {user.lastLogin ? (
-                    <span className="text-sm">
-                      {new Date(user.lastLogin).toLocaleDateString()} at {new Date(user.lastLogin).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  ) : (
-                    <span className="text-sm text-gray-500">Never</span>
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="sm" onClick={() => handleEdit(user)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      <Key className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      <Shield className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  </TableCell>
+                  <TableCell>{getRoleBadge(user.role)}</TableCell>
+                  <TableCell>{user.department}</TableCell>
+                  <TableCell>
+                    <Badge variant={user.status === 'Active' ? 'default' : 'secondary'}>
+                      {user.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {user.lastLogin ? (
+                      <span className="text-sm">
+                        {new Date(user.lastLogin).toLocaleDateString()} at {new Date(user.lastLogin).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    ) : (
+                      <span className="text-sm text-gray-500">Never</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="sm" onClick={() => handleEdit(user)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm">
+                        <Key className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm">
+                        <Shield className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-6">
+                  No users found
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={6} className="text-center py-6">
-                No users found
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      
+      <div className="flex justify-center mt-4">
+        <DataPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+        />
+      </div>
+    </>
   );
 };
 

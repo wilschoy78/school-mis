@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Search, Pencil, Receipt, ArrowUp, ArrowDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import DataPagination from '@/components/common/DataPagination';
 
 const accountsData = [
   { 
@@ -63,13 +63,60 @@ const accountsData = [
     paymentMethod: 'Card',
     status: 'Completed'
   },
+  { 
+    id: '5', 
+    studentName: 'Robert Wilson', 
+    studentId: 'S005', 
+    transactionType: 'Payment', 
+    amount: 850, 
+    date: new Date(2023, 8, 2), 
+    category: 'Tuition Fee',
+    paymentMethod: 'Cash',
+    status: 'Completed'
+  },
+  { 
+    id: '6', 
+    studentName: 'Anna Thompson', 
+    studentId: 'S006', 
+    transactionType: 'Payment', 
+    amount: 300, 
+    date: new Date(2023, 8, 7), 
+    category: 'Lab Fee',
+    paymentMethod: 'Card',
+    status: 'Completed'
+  },
+  { 
+    id: '7', 
+    studentName: 'William Clark', 
+    studentId: 'S007', 
+    transactionType: 'Refund', 
+    amount: 150, 
+    date: new Date(2023, 8, 10), 
+    category: 'Library Fee',
+    paymentMethod: 'Bank Transfer',
+    status: 'Pending'
+  },
+  { 
+    id: '8', 
+    studentName: 'Olivia Martinez', 
+    studentId: 'S008', 
+    transactionType: 'Payment', 
+    amount: 950, 
+    date: new Date(2023, 7, 28), 
+    category: 'Annual Fee',
+    paymentMethod: 'Card',
+    status: 'Completed'
+  }
 ];
+
+const ITEMS_PER_PAGE = 5;
 
 const AccountsPage = () => {
   const [transactions, setTransactions] = useState(accountsData);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState({
     studentName: '',
     studentId: '',
@@ -88,6 +135,16 @@ const AccountsPage = () => {
     transaction.status.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE);
+  const paginatedTransactions = filteredTransactions.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE, 
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -98,7 +155,6 @@ const AccountsPage = () => {
   };
 
   const handleAddTransaction = () => {
-    // Validate form
     if (!formData.studentName || !formData.studentId || !formData.amount || !formData.category || !formData.paymentMethod) {
       toast({
         title: "Error",
@@ -108,7 +164,6 @@ const AccountsPage = () => {
       return;
     }
 
-    // Validate amount
     const amount = parseFloat(formData.amount);
     if (isNaN(amount) || amount <= 0) {
       toast({
@@ -120,14 +175,13 @@ const AccountsPage = () => {
     }
 
     if (selectedTransaction) {
-      // Update existing transaction
       const updatedTransactions = transactions.map(transaction => 
         transaction.id === selectedTransaction.id 
           ? { 
               ...transaction, 
               ...formData,
               amount: parseFloat(formData.amount),
-              date: transaction.date // Keep the original date
+              date: transaction.date
             } 
           : transaction
       );
@@ -137,12 +191,11 @@ const AccountsPage = () => {
         description: "Transaction updated successfully",
       });
     } else {
-      // Add new transaction
       const newTransaction = {
         id: (transactions.length + 1).toString(),
         ...formData,
         amount: parseFloat(formData.amount),
-        date: new Date() // Current date
+        date: new Date()
       };
       setTransactions([...transactions, newTransaction]);
       toast({
@@ -151,7 +204,6 @@ const AccountsPage = () => {
       });
     }
     
-    // Reset form and close dialog
     setFormData({
       studentName: '',
       studentId: '',
@@ -367,8 +419,8 @@ const AccountsPage = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredTransactions.length > 0 ? (
-              filteredTransactions.map((transaction) => (
+            {paginatedTransactions.length > 0 ? (
+              paginatedTransactions.map((transaction) => (
                 <TableRow key={transaction.id}>
                   <TableCell className="font-medium">{transaction.studentName}</TableCell>
                   <TableCell>{transaction.studentId}</TableCell>
@@ -408,6 +460,14 @@ const AccountsPage = () => {
             )}
           </TableBody>
         </Table>
+      </div>
+      
+      <div className="flex justify-center mt-4">
+        <DataPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </MainLayout>
   );

@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Search, Pencil, FileText, CheckCircle2, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import DataPagination from '@/components/common/DataPagination';
 
 const enrollmentData = [
   { 
@@ -59,13 +59,56 @@ const enrollmentData = [
     status: 'Active',
     feesPaid: true
   },
+  { 
+    id: '5', 
+    studentName: 'William White', 
+    studentId: 'S005', 
+    academicYear: '2023-2024', 
+    grade: '9', 
+    enrollmentDate: new Date(2023, 7, 8), 
+    status: 'Active',
+    feesPaid: true
+  },
+  { 
+    id: '6', 
+    studentName: 'Olivia Green', 
+    studentId: 'S006', 
+    academicYear: '2023-2024', 
+    grade: '10', 
+    enrollmentDate: new Date(2023, 7, 10), 
+    status: 'Pending',
+    feesPaid: false
+  },
+  { 
+    id: '7', 
+    studentName: 'James Taylor', 
+    studentId: 'S007', 
+    academicYear: '2023-2024', 
+    grade: '11', 
+    enrollmentDate: new Date(2023, 7, 3), 
+    status: 'Active',
+    feesPaid: true
+  },
+  { 
+    id: '8', 
+    studentName: 'Sophia Adams', 
+    studentId: 'S008', 
+    academicYear: '2023-2024', 
+    grade: '12', 
+    enrollmentDate: new Date(2023, 7, 7), 
+    status: 'Pending',
+    feesPaid: false
+  },
 ];
+
+const ITEMS_PER_PAGE = 5;
 
 const EnrollmentPage = () => {
   const [enrollments, setEnrollments] = useState(enrollmentData);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedEnrollment, setSelectedEnrollment] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState({
     studentName: '',
     studentId: '',
@@ -82,6 +125,16 @@ const EnrollmentPage = () => {
     enrollment.status.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filteredEnrollments.length / ITEMS_PER_PAGE);
+  const paginatedEnrollments = filteredEnrollments.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE, 
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -96,7 +149,6 @@ const EnrollmentPage = () => {
   };
 
   const handleAddEnrollment = () => {
-    // Validate form
     if (!formData.studentName || !formData.studentId || !formData.grade) {
       toast({
         title: "Error",
@@ -107,13 +159,12 @@ const EnrollmentPage = () => {
     }
 
     if (selectedEnrollment) {
-      // Update existing enrollment
       const updatedEnrollments = enrollments.map(enrollment => 
         enrollment.id === selectedEnrollment.id 
           ? { 
               ...enrollment, 
               ...formData,
-              enrollmentDate: enrollment.enrollmentDate // Keep the original date
+              enrollmentDate: enrollment.enrollmentDate
             } 
           : enrollment
       );
@@ -123,11 +174,10 @@ const EnrollmentPage = () => {
         description: "Enrollment updated successfully",
       });
     } else {
-      // Add new enrollment
       const newEnrollment = {
         id: (enrollments.length + 1).toString(),
         ...formData,
-        enrollmentDate: new Date() // Current date
+        enrollmentDate: new Date()
       };
       setEnrollments([...enrollments, newEnrollment]);
       toast({
@@ -136,7 +186,6 @@ const EnrollmentPage = () => {
       });
     }
     
-    // Reset form and close dialog
     setFormData({
       studentName: '',
       studentId: '',
@@ -324,8 +373,8 @@ const EnrollmentPage = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredEnrollments.length > 0 ? (
-              filteredEnrollments.map((enrollment) => (
+            {paginatedEnrollments.length > 0 ? (
+              paginatedEnrollments.map((enrollment) => (
                 <TableRow key={enrollment.id}>
                   <TableCell className="font-medium">{enrollment.studentName}</TableCell>
                   <TableCell>{enrollment.studentId}</TableCell>
@@ -355,6 +404,14 @@ const EnrollmentPage = () => {
             )}
           </TableBody>
         </Table>
+      </div>
+      
+      <div className="flex justify-center mt-4">
+        <DataPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </MainLayout>
   );
