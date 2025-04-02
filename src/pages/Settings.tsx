@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
 import { 
@@ -17,6 +18,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { BookOpen, Building, Mail, Phone, Globe, MapPin, CalendarIcon, Clock, Wallet, Palette } from 'lucide-react';
 
 export const SystemSettingsContext = React.createContext({
   systemName: 'Alicia MIS',
@@ -156,7 +158,10 @@ const SettingsPage = () => {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="name">School Name</Label>
+                  <div className="flex items-center gap-2">
+                    <Building className="h-4 w-4 text-muted-foreground" />
+                    <Label htmlFor="name">School Name</Label>
+                  </div>
                   <Input 
                     id="name" 
                     name="name"
@@ -165,7 +170,10 @@ const SettingsPage = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="shortName">Short Name</Label>
+                  <div className="flex items-center gap-2">
+                    <Building className="h-4 w-4 text-muted-foreground" />
+                    <Label htmlFor="shortName">Short Name</Label>
+                  </div>
                   <Input 
                     id="shortName" 
                     name="shortName"
@@ -177,7 +185,10 @@ const SettingsPage = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="systemName">System Name</Label>
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-muted-foreground" />
+                    <Label htmlFor="systemName">System Name</Label>
+                  </div>
                   <Input 
                     id="systemName" 
                     name="systemName"
@@ -188,7 +199,10 @@ const SettingsPage = () => {
                   <p className="text-xs text-muted-foreground">This name appears in the sidebar and throughout the system</p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <Label htmlFor="email">Email Address</Label>
+                  </div>
                   <Input 
                     id="email" 
                     name="email"
@@ -200,7 +214,10 @@ const SettingsPage = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <Label htmlFor="phone">Phone Number</Label>
+                </div>
                 <Input 
                   id="phone" 
                   name="phone"
@@ -210,7 +227,10 @@ const SettingsPage = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <Label htmlFor="address">Address</Label>
+                </div>
                 <Input 
                   id="address" 
                   name="address"
@@ -220,7 +240,10 @@ const SettingsPage = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="website">Website</Label>
+                <div className="flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-muted-foreground" />
+                  <Label htmlFor="website">Website</Label>
+                </div>
                 <Input 
                   id="website" 
                   name="website"
@@ -233,7 +256,10 @@ const SettingsPage = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="academicYear">Current Academic Year</Label>
+                  <div className="flex items-center gap-2">
+                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                    <Label htmlFor="academicYear">Current Academic Year</Label>
+                  </div>
                   <Select 
                     value={schoolSettings.academicYear} 
                     onValueChange={(value) => handleSelectChange('academicYear', value)}
@@ -249,7 +275,10 @@ const SettingsPage = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="timezone">Timezone</Label>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <Label htmlFor="timezone">Timezone</Label>
+                  </div>
                   <Select 
                     value={schoolSettings.timezone} 
                     onValueChange={(value) => handleSelectChange('timezone', value)}
@@ -269,7 +298,10 @@ const SettingsPage = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="currency">Currency</Label>
+                  <div className="flex items-center gap-2">
+                    <Wallet className="h-4 w-4 text-muted-foreground" />
+                    <Label htmlFor="currency">Currency</Label>
+                  </div>
                   <Select 
                     value={schoolSettings.currency} 
                     onValueChange={(value) => handleSelectChange('currency', value)}
@@ -290,7 +322,10 @@ const SettingsPage = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="theme">Theme</Label>
+                <div className="flex items-center gap-2">
+                  <Palette className="h-4 w-4 text-muted-foreground" />
+                  <Label htmlFor="theme">Theme</Label>
+                </div>
                 <Select 
                   value={schoolSettings.theme} 
                   onValueChange={(value) => handleSelectChange('theme', value)}

@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useSystemSettings } from '@/pages/Settings';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -19,6 +20,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export const LoginForm: React.FC = () => {
   const { login, isLoading } = useAuth();
+  const { systemName } = useSystemSettings();
   const [showPassword, setShowPassword] = useState(false);
   
   const form = useForm<FormValues>({
@@ -73,7 +75,7 @@ export const LoginForm: React.FC = () => {
             <BookOpen className="h-6 w-6 text-primary" />
           </div>
         </div>
-        <CardTitle className="text-2xl">Sign in to Alicia MIS</CardTitle>
+        <CardTitle className="text-2xl">Sign in to {systemName}</CardTitle>
         <CardDescription>Enter your credentials to access your account</CardDescription>
       </CardHeader>
       <CardContent>
