@@ -20,7 +20,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export const LoginForm: React.FC = () => {
   const { login, isLoading } = useAuth();
-  const { systemName } = useSystemSettings();
+  const { systemName, logo } = useSystemSettings();
   const [showPassword, setShowPassword] = useState(false);
   
   const form = useForm<FormValues>({
@@ -76,7 +76,11 @@ export const LoginForm: React.FC = () => {
       <CardHeader className="space-y-2 text-center">
         <div className="flex justify-center mb-2">
           <div className="p-2 rounded-full bg-primary/10">
-            <BookOpen className="h-6 w-6 text-primary" />
+            {logo ? (
+              <img src={logo} alt={systemName} className="h-6 w-6 object-contain" />
+            ) : (
+              <BookOpen className="h-6 w-6 text-primary" />
+            )}
           </div>
         </div>
         <CardTitle className="text-2xl">Sign in to {systemName}</CardTitle>

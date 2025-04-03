@@ -9,7 +9,7 @@ import { useSystemSettings } from './Settings';
 
 const Login = () => {
   const { isAuthenticated, isLoading } = useAuth();
-  const { systemName } = useSystemSettings();
+  const { systemName, logo } = useSystemSettings();
   const { toast } = useToast();
   
   // If already authenticated, redirect to dashboard
@@ -20,7 +20,11 @@ const Login = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100">
       <div className="flex justify-center items-center mb-4">
-        <BookOpen className="h-10 w-10 text-primary mr-2" />
+        {logo ? (
+          <img src={logo} alt={systemName} className="h-10 w-10 mr-2 object-contain" />
+        ) : (
+          <BookOpen className="h-10 w-10 text-primary mr-2" />
+        )}
         <h1 className="text-3xl font-bold text-gray-900">{systemName}</h1>
       </div>
       <LoginForm />
