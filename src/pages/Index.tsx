@@ -8,7 +8,7 @@ import { useSystemSettings } from './Settings';
 
 const Index = () => {
   const { isAuthenticated } = useAuth();
-  const { systemName } = useSystemSettings();
+  const { systemName, logo } = useSystemSettings();
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -16,7 +16,11 @@ const Index = () => {
       <header className="bg-white border-b border-gray-100">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <BookOpen className="h-6 w-6 text-school-500" />
+            {logo ? (
+              <img src={logo} alt={systemName} className="h-6 w-6 object-contain" />
+            ) : (
+              <BookOpen className="h-6 w-6 text-school-500" />
+            )}
             <span className="text-xl font-semibold">{systemName}</span>
           </div>
           <div className="space-x-2">
@@ -121,7 +125,11 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <BookOpen className="h-6 w-6 text-white" />
+              {logo ? (
+                <img src={logo} alt={systemName} className="h-6 w-6 object-contain invert" />
+              ) : (
+                <BookOpen className="h-6 w-6 text-white" />
+              )}
               <span className="text-xl font-semibold text-white">{systemName}</span>
             </div>
             <div className="text-sm">

@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
 import { 
   Tabs, TabsContent, TabsList, TabsTrigger 
@@ -18,39 +17,51 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { BookOpen, Building, Mail, Phone, Globe, MapPin, CalendarIcon, Clock, Wallet, Palette } from 'lucide-react';
+import { BookOpen, Building, Mail, Phone, Globe, MapPin, CalendarIcon, Clock, Wallet, Palette, Image, Upload } from 'lucide-react';
 
 export const SystemSettingsContext = React.createContext({
   systemName: 'Alicia MIS',
-  updateSystemName: (name: string) => {}
+  updateSystemName: (name: string) => {},
+  logo: '',
+  updateLogo: (logo: string) => {}
 });
 
 export const useSystemSettings = () => React.useContext(SystemSettingsContext);
 
 export const SystemSettingsProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
   const [systemName, setSystemName] = useState('Alicia MIS');
+  const [logo, setLogo] = useState('');
   
   const updateSystemName = (name: string) => {
     setSystemName(name);
     localStorage.setItem('systemName', name);
   };
+
+  const updateLogo = (logoUrl: string) => {
+    setLogo(logoUrl);
+    localStorage.setItem('schoolLogo', logoUrl);
+  };
   
   React.useEffect(() => {
     const savedName = localStorage.getItem('systemName');
+    const savedLogo = localStorage.getItem('schoolLogo');
     if (savedName) {
       setSystemName(savedName);
+    }
+    if (savedLogo) {
+      setLogo(savedLogo);
     }
   }, []);
   
   return (
-    <SystemSettingsContext.Provider value={{ systemName, updateSystemName }}>
+    <SystemSettingsContext.Provider value={{ systemName, updateSystemName, logo, updateLogo }}>
       {children}
     </SystemSettingsContext.Provider>
   );
 };
 
 const SettingsPage = () => {
-  const { systemName, updateSystemName } = useSystemSettings();
+  const { systemName, updateSystemName, logo, updateLogo } = useSystemSettings();
   const [schoolSettings, setSchoolSettings] = useState({
     name: 'Brightstar International School',
     shortName: 'Brightstar',
@@ -58,7 +69,7 @@ const SettingsPage = () => {
     phone: '555-123-4567',
     address: '123 Education Way, Knowledge City, 12345',
     website: 'www.brightstar.edu',
-    logo: '',
+    logo: logo,
     systemName: systemName,
     theme: 'light',
     academicYear: '2023-2024',
@@ -66,22 +77,8 @@ const SettingsPage = () => {
     currency: 'USD'
   });
 
-  const [notificationSettings, setNotificationSettings] = useState({
-    emailNotifications: true,
-    smsNotifications: false,
-    attendanceAlerts: true,
-    feeReminders: true,
-    examResults: true,
-    holidayAnnouncements: true,
-    newsletterUpdates: false
-  });
-
-  const [securitySettings, setSecuritySettings] = useState({
-    twoFactorAuth: false,
-    passwordExpiry: '90',
-    sessionTimeout: '30',
-    loginAttempts: '5'
-  });
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewLogo, setPreviewLogo] = useState<string | null>(logo || null);
 
   const { toast } = useToast();
 
@@ -98,6 +95,40 @@ const SettingsPage = () => {
     setSchoolSettings(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setPreviewLogo(result);
+        setSchoolSettings(prev => ({ ...prev, logo: result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerLogoUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const removeLogo = () => {
+    setPreviewLogo(null);
+    setSchoolSettings(prev => ({ ...prev, logo: '' }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const saveSchoolSettings = () => {
+    updateSystemName(schoolSettings.systemName);
+    updateLogo(schoolSettings.logo);
+    toast({
+      title: "Settings Saved",
+      description: "School settings have been updated successfully."
+    });
+  };
+
   const handleNotificationToggle = (name) => {
     setNotificationSettings(prev => ({ ...prev, [name]: !prev[name] }));
   };
@@ -109,14 +140,6 @@ const SettingsPage = () => {
 
   const handleSecurityToggle = (name) => {
     setSecuritySettings(prev => ({ ...prev, [name]: !prev[name] }));
-  };
-
-  const saveSchoolSettings = () => {
-    updateSystemName(schoolSettings.systemName);
-    toast({
-      title: "Settings Saved",
-      description: "School settings have been updated successfully."
-    });
   };
 
   const saveNotificationSettings = () => {
@@ -210,6 +233,61 @@ const SettingsPage = () => {
                     value={schoolSettings.email} 
                     onChange={handleSchoolSettingsChange} 
                   />
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Image className="h-4 w-4 text-muted-foreground" />
+                  <Label>School Logo</Label>
+                </div>
+                <div className="flex flex-col gap-4 items-start">
+                  <div className="w-40 h-40 border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center overflow-hidden bg-gray-50">
+                    {previewLogo ? (
+                      <img 
+                        src={previewLogo} 
+                        alt="School Logo" 
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center p-6 text-gray-500">
+                        <Upload className="h-8 w-8 mb-2" />
+                        <p className="text-xs text-center">No logo uploaded</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm"
+                      onClick={triggerLogoUpload}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Logo
+                    </Button>
+                    {previewLogo && (
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={removeLogo}
+                      >
+                        Remove Logo
+                      </Button>
+                    )}
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleLogoChange}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Recommended size: 512x512 pixels. Max file size: 2MB. 
+                    Supported formats: JPG, PNG, SVG.
+                  </p>
                 </div>
               </div>
               

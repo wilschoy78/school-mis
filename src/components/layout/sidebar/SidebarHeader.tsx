@@ -28,7 +28,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
   toggleSidebar, 
   isMobile 
 }) => {
-  const { systemName } = useSystemSettings();
+  const { systemName, logo } = useSystemSettings();
   
   const getInitials = (name: string) => {
     return name
@@ -47,13 +47,21 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
       )}>
         {!collapsed && (
           <Link to="/dashboard" className="text-lg font-semibold text-sidebar-foreground flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-school-500" />
+            {logo ? (
+              <img src={logo} alt={systemName} className="w-6 h-6 object-contain" />
+            ) : (
+              <BookOpen className="w-6 h-6 text-school-500" />
+            )}
             <span className="animate-fade-in">{systemName}</span>
           </Link>
         )}
         {collapsed && (
           <Link to="/dashboard" className="text-sidebar-foreground">
-            <BookOpen className="w-6 h-6 text-school-500" />
+            {logo ? (
+              <img src={logo} alt={systemName} className="w-6 h-6 object-contain" />
+            ) : (
+              <BookOpen className="w-6 h-6 text-school-500" />
+            )}
           </Link>
         )}
         
