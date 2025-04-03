@@ -59,6 +59,10 @@ export const LoginForm: React.FC = () => {
         email = 'teacher@school.edu';
         password = 'teacher123';
         break;
+      case 'librarian':
+        email = 'librarian@school.edu';
+        password = 'librarian123';
+        break;
       default:
         email = 'admin@school.edu';
         password = 'admin123';
@@ -147,6 +151,9 @@ export const LoginForm: React.FC = () => {
           </Button>
           <Button variant="outline" size="sm" onClick={() => handleDemoLogin('teacher')}>
             Teacher Demo
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => handleDemoLogin('librarian')}>
+            Librarian Demo
           </Button>
         </div>
       </CardFooter>
