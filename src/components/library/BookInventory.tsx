@@ -22,6 +22,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import DataPagination from '@/components/common/DataPagination';
 
 interface Book {
   id: string;
@@ -33,13 +34,20 @@ interface Book {
   status: 'available' | 'low_stock' | 'out_of_stock';
 }
 
-// Mock data for books
+// Mock data for books - expanded for pagination example
 const mockBooks: Book[] = [
   { id: '1', title: 'To Kill a Mockingbird', author: 'Harper Lee', isbn: '978-0446310789', quantity: 5, location: 'Fiction A-12', status: 'available' },
   { id: '2', title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', isbn: '978-0743273565', quantity: 3, location: 'Fiction B-7', status: 'low_stock' },
   { id: '3', title: '1984', author: 'George Orwell', isbn: '978-0451524935', quantity: 0, location: 'Fiction C-3', status: 'out_of_stock' },
   { id: '4', title: 'The Catcher in the Rye', author: 'J.D. Salinger', isbn: '978-0316769488', quantity: 7, location: 'Fiction A-5', status: 'available' },
   { id: '5', title: 'Pride and Prejudice', author: 'Jane Austen', isbn: '978-0141439518', quantity: 2, location: 'Fiction B-9', status: 'low_stock' },
+  { id: '6', title: 'The Hobbit', author: 'J.R.R. Tolkien', isbn: '978-0547928227', quantity: 4, location: 'Fantasy D-2', status: 'available' },
+  { id: '7', title: 'Harry Potter and the Philosopher\'s Stone', author: 'J.K. Rowling', isbn: '978-0439708180', quantity: 1, location: 'Fantasy D-5', status: 'low_stock' },
+  { id: '8', title: 'The Lord of the Rings', author: 'J.R.R. Tolkien', isbn: '978-0544003415', quantity: 3, location: 'Fantasy D-3', status: 'low_stock' },
+  { id: '9', title: 'Animal Farm', author: 'George Orwell', isbn: '978-0451526342', quantity: 0, location: 'Fiction C-4', status: 'out_of_stock' },
+  { id: '10', title: 'Brave New World', author: 'Aldous Huxley', isbn: '978-0060850524', quantity: 6, location: 'Fiction C-7', status: 'available' },
+  { id: '11', title: 'The Odyssey', author: 'Homer', isbn: '978-0140268867', quantity: 2, location: 'Classics A-1', status: 'low_stock' },
+  { id: '12', title: 'Moby Dick', author: 'Herman Melville', isbn: '978-1503280786', quantity: 4, location: 'Classics A-3', status: 'available' },
 ];
 
 export const BookInventory: React.FC = () => {
@@ -48,6 +56,10 @@ export const BookInventory: React.FC = () => {
   const [bookToEdit, setBookToEdit] = useState<Book | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { toast } = useToast();
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const booksPerPage = 5;
 
   // New book form state
   const [newBook, setNewBook] = useState<Omit<Book, 'id' | 'status'>>({
@@ -60,6 +72,7 @@ export const BookInventory: React.FC = () => {
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
+    setCurrentPage(1); // Reset to first page when searching
   };
 
   const filteredBooks = books.filter(book => 
@@ -67,6 +80,16 @@ export const BookInventory: React.FC = () => {
     book.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
     book.isbn.includes(searchTerm)
   );
+
+  // Calculate pagination
+  const indexOfLastBook = currentPage * booksPerPage;
+  const indexOfFirstBook = indexOfLastBook - booksPerPage;
+  const currentBooks = filteredBooks.slice(indexOfFirstBook, indexOfLastBook);
+  const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const handleAddBook = () => {
     const bookStatus = newBook.quantity === 0 
@@ -233,14 +256,14 @@ export const BookInventory: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredBooks.length === 0 ? (
+            {currentBooks.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-24 text-center">
                   No books found.
                 </TableCell>
               </TableRow>
             ) : (
-              filteredBooks.map((book) => (
+              currentBooks.map((book) => (
                 <TableRow key={book.id}>
                   <TableCell className="font-medium">{book.title}</TableCell>
                   <TableCell>{book.author}</TableCell>
@@ -338,6 +361,16 @@ export const BookInventory: React.FC = () => {
           </TableBody>
         </Table>
       </div>
+      
+      {filteredBooks.length > 0 && (
+        <div className="flex justify-center">
+          <DataPagination 
+            currentPage={currentPage} 
+            totalPages={totalPages} 
+            onPageChange={handlePageChange} 
+          />
+        </div>
+      )}
     </div>
   );
 };
