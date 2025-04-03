@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
 import { 
@@ -74,11 +73,10 @@ const SettingsPage = () => {
     systemName: systemName,
     theme: 'light',
     academicYear: '2023-2024',
-    timezone: 'UTC-5',
-    currency: 'USD'
+    timezone: 'UTC+8',
+    currency: 'PHP'
   });
 
-  // Initialize notificationSettings state
   const [notificationSettings, setNotificationSettings] = useState({
     emailNotifications: true,
     smsNotifications: false,
@@ -89,7 +87,6 @@ const SettingsPage = () => {
     newsletterUpdates: false
   });
 
-  // Initialize securitySettings state
   const [securitySettings, setSecuritySettings] = useState({
     twoFactorAuth: false,
     passwordExpiry: 90,
@@ -385,6 +382,7 @@ const SettingsPage = () => {
                       <SelectValue placeholder="Select timezone" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="UTC+8">Philippines Time (GMT+8)</SelectItem>
                       <SelectItem value="UTC-8">Pacific Time (UTC-8)</SelectItem>
                       <SelectItem value="UTC-7">Mountain Time (UTC-7)</SelectItem>
                       <SelectItem value="UTC-6">Central Time (UTC-6)</SelectItem>
@@ -408,6 +406,7 @@ const SettingsPage = () => {
                       <SelectValue placeholder="Select currency" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="PHP">Philippine Peso (₱)</SelectItem>
                       <SelectItem value="USD">US Dollar ($)</SelectItem>
                       <SelectItem value="EUR">Euro (€)</SelectItem>
                       <SelectItem value="GBP">British Pound (£)</SelectItem>
