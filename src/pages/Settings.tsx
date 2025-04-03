@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
 import { 
@@ -75,6 +76,25 @@ const SettingsPage = () => {
     academicYear: '2023-2024',
     timezone: 'UTC-5',
     currency: 'USD'
+  });
+
+  // Initialize notificationSettings state
+  const [notificationSettings, setNotificationSettings] = useState({
+    emailNotifications: true,
+    smsNotifications: false,
+    attendanceAlerts: true,
+    feeReminders: true,
+    examResults: true,
+    holidayAnnouncements: true,
+    newsletterUpdates: false
+  });
+
+  // Initialize securitySettings state
+  const [securitySettings, setSecuritySettings] = useState({
+    twoFactorAuth: false,
+    passwordExpiry: 90,
+    sessionTimeout: 30,
+    loginAttempts: 5
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
