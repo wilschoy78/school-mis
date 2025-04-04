@@ -17,6 +17,8 @@ import { PlusCircle, Search, Pencil, FileText, CheckCircle2, XCircle } from 'luc
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import DataPagination from '@/components/common/DataPagination';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DocumentRequirements } from '@/components/enrollment/DocumentRequirements';
 
 const enrollmentData = [
   { 
@@ -109,6 +111,7 @@ const EnrollmentPage = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedEnrollment, setSelectedEnrollment] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [activeTab, setActiveTab] = useState("enrollments");
   const [formData, setFormData] = useState({
     studentName: '',
     studentId: '',
@@ -228,191 +231,204 @@ const EnrollmentPage = () => {
         description="Manage student enrollments for academic years"
       />
       
-      <div className="flex justify-between items-center mb-6">
-        <div className="relative w-64">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-          <Input
-            placeholder="Search enrollments..."
-            className="pl-10"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              New Enrollment
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{selectedEnrollment ? 'Edit Enrollment' : 'New Enrollment'}</DialogTitle>
-              <DialogDescription>
-                Enter the enrollment details below.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="studentName" className="text-right">Student Name</Label>
-                <Input 
-                  id="studentName" 
-                  name="studentName" 
-                  value={formData.studentName} 
-                  onChange={handleInputChange} 
-                  className="col-span-3" 
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="studentId" className="text-right">Student ID</Label>
-                <Input 
-                  id="studentId" 
-                  name="studentId" 
-                  value={formData.studentId} 
-                  onChange={handleInputChange} 
-                  className="col-span-3" 
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="academicYear" className="text-right">Academic Year</Label>
-                <Select 
-                  value={formData.academicYear} 
-                  onValueChange={(value) => handleSelectChange('academicYear', value)}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select academic year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2022-2023">2022-2023</SelectItem>
-                    <SelectItem value="2023-2024">2023-2024</SelectItem>
-                    <SelectItem value="2024-2025">2024-2025</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="grade" className="text-right">Grade</Label>
-                <Select 
-                  value={formData.grade} 
-                  onValueChange={(value) => handleSelectChange('grade', value)}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select grade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="9">Grade 9</SelectItem>
-                    <SelectItem value="10">Grade 10</SelectItem>
-                    <SelectItem value="11">Grade 11</SelectItem>
-                    <SelectItem value="12">Grade 12</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="status" className="text-right">Status</Label>
-                <Select 
-                  value={formData.status} 
-                  onValueChange={(value) => handleSelectChange('status', value)}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Pending">Pending</SelectItem>
-                    <SelectItem value="Inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="feesPaid" className="text-right">Fees Paid</Label>
-                <div className="col-span-3 flex items-center">
-                  <input 
-                    type="checkbox" 
-                    id="feesPaid"
-                    checked={formData.feesPaid}
-                    onChange={(e) => handleCheckboxChange('feesPaid', e.target.checked)}
-                    className="mr-2 h-4 w-4"
-                  />
-                  <Label htmlFor="feesPaid">Yes</Label>
-                </div>
-              </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mb-6">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="enrollments">Enrollments</TabsTrigger>
+          <TabsTrigger value="requirements">Requirements</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="enrollments" className="mt-6">
+          <div className="flex justify-between items-center mb-6">
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+              <Input
+                placeholder="Search enrollments..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => {
-                setIsAddDialogOpen(false);
-                setSelectedEnrollment(null);
-                setFormData({
-                  studentName: '',
-                  studentId: '',
-                  academicYear: '2023-2024',
-                  grade: '',
-                  status: 'Pending',
-                  feesPaid: false
-                });
-              }}>
-                Cancel
-              </Button>
-              <Button onClick={handleAddEnrollment}>Save</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  New Enrollment
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{selectedEnrollment ? 'Edit Enrollment' : 'New Enrollment'}</DialogTitle>
+                  <DialogDescription>
+                    Enter the enrollment details below.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="studentName" className="text-right">Student Name</Label>
+                    <Input 
+                      id="studentName" 
+                      name="studentName" 
+                      value={formData.studentName} 
+                      onChange={handleInputChange} 
+                      className="col-span-3" 
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="studentId" className="text-right">Student ID</Label>
+                    <Input 
+                      id="studentId" 
+                      name="studentId" 
+                      value={formData.studentId} 
+                      onChange={handleInputChange} 
+                      className="col-span-3" 
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="academicYear" className="text-right">Academic Year</Label>
+                    <Select 
+                      value={formData.academicYear} 
+                      onValueChange={(value) => handleSelectChange('academicYear', value)}
+                    >
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Select academic year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="2022-2023">2022-2023</SelectItem>
+                        <SelectItem value="2023-2024">2023-2024</SelectItem>
+                        <SelectItem value="2024-2025">2024-2025</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="grade" className="text-right">Grade</Label>
+                    <Select 
+                      value={formData.grade} 
+                      onValueChange={(value) => handleSelectChange('grade', value)}
+                    >
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Select grade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="9">Grade 9</SelectItem>
+                        <SelectItem value="10">Grade 10</SelectItem>
+                        <SelectItem value="11">Grade 11</SelectItem>
+                        <SelectItem value="12">Grade 12</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="status" className="text-right">Status</Label>
+                    <Select 
+                      value={formData.status} 
+                      onValueChange={(value) => handleSelectChange('status', value)}
+                    >
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Active">Active</SelectItem>
+                        <SelectItem value="Pending">Pending</SelectItem>
+                        <SelectItem value="Inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="feesPaid" className="text-right">Fees Paid</Label>
+                    <div className="col-span-3 flex items-center">
+                      <input 
+                        type="checkbox" 
+                        id="feesPaid"
+                        checked={formData.feesPaid}
+                        onChange={(e) => handleCheckboxChange('feesPaid', e.target.checked)}
+                        className="mr-2 h-4 w-4"
+                      />
+                      <Label htmlFor="feesPaid">Yes</Label>
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => {
+                    setIsAddDialogOpen(false);
+                    setSelectedEnrollment(null);
+                    setFormData({
+                      studentName: '',
+                      studentId: '',
+                      academicYear: '2023-2024',
+                      grade: '',
+                      status: 'Pending',
+                      feesPaid: false
+                    });
+                  }}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleAddEnrollment}>Save</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <Table>
-          <TableCaption>List of student enrollments</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Student</TableHead>
-              <TableHead>ID</TableHead>
-              <TableHead>Academic Year</TableHead>
-              <TableHead>Grade</TableHead>
-              <TableHead>Enrollment Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Fees Paid</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedEnrollments.length > 0 ? (
-              paginatedEnrollments.map((enrollment) => (
-                <TableRow key={enrollment.id}>
-                  <TableCell className="font-medium">{enrollment.studentName}</TableCell>
-                  <TableCell>{enrollment.studentId}</TableCell>
-                  <TableCell>{enrollment.academicYear}</TableCell>
-                  <TableCell>{enrollment.grade}</TableCell>
-                  <TableCell>{format(enrollment.enrollmentDate, 'MMM d, yyyy')}</TableCell>
-                  <TableCell>{getStatusBadge(enrollment.status)}</TableCell>
-                  <TableCell>
-                    {enrollment.feesPaid ? 
-                      <CheckCircle2 className="h-5 w-5 text-green-500" /> : 
-                      <XCircle className="h-5 w-5 text-red-500" />
-                    }
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={() => handleEditEnrollment(enrollment)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <Table>
+              <TableCaption>List of student enrollments</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Student</TableHead>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Academic Year</TableHead>
+                  <TableHead>Grade</TableHead>
+                  <TableHead>Enrollment Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Fees Paid</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center py-6">
-                  No enrollments found
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-      
-      <div className="flex justify-center mt-4">
-        <DataPagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
-      </div>
+              </TableHeader>
+              <TableBody>
+                {paginatedEnrollments.length > 0 ? (
+                  paginatedEnrollments.map((enrollment) => (
+                    <TableRow key={enrollment.id}>
+                      <TableCell className="font-medium">{enrollment.studentName}</TableCell>
+                      <TableCell>{enrollment.studentId}</TableCell>
+                      <TableCell>{enrollment.academicYear}</TableCell>
+                      <TableCell>{enrollment.grade}</TableCell>
+                      <TableCell>{format(enrollment.enrollmentDate, 'MMM d, yyyy')}</TableCell>
+                      <TableCell>{getStatusBadge(enrollment.status)}</TableCell>
+                      <TableCell>
+                        {enrollment.feesPaid ? 
+                          <CheckCircle2 className="h-5 w-5 text-green-500" /> : 
+                          <XCircle className="h-5 w-5 text-red-500" />
+                        }
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm" onClick={() => handleEditEnrollment(enrollment)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-6">
+                      No enrollments found
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          
+          <div className="flex justify-center mt-4">
+            <DataPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="requirements" className="mt-6">
+          <DocumentRequirements studentId={selectedEnrollment?.studentId || null} />
+        </TabsContent>
+      </Tabs>
     </MainLayout>
   );
 };
