@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Search, Pencil, FileText, CheckCircle2, XCircle } from 'lucide-react';
+import { PlusCircle, Search, Pencil, FileText, CheckCircle2, XCircle, FileCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import DataPagination from '@/components/common/DataPagination';
@@ -214,6 +215,11 @@ const EnrollmentPage = () => {
     setIsAddDialogOpen(true);
   };
 
+  const handleViewDocuments = (enrollment) => {
+    setSelectedEnrollment(enrollment);
+    setActiveTab("requirements");
+  };
+
   const getStatusBadge = (status) => {
     if (status === 'Active') {
       return <Badge className="bg-green-500">Active</Badge>;
@@ -234,7 +240,7 @@ const EnrollmentPage = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mb-6">
         <TabsList className="grid w-full max-w-md grid-cols-2">
           <TabsTrigger value="enrollments">Enrollments</TabsTrigger>
-          <TabsTrigger value="requirements">Requirements</TabsTrigger>
+          <TabsTrigger value="requirements">Document Requirements</TabsTrigger>
         </TabsList>
         
         <TabsContent value="enrollments" className="mt-6">
@@ -335,14 +341,12 @@ const EnrollmentPage = () => {
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="feesPaid" className="text-right">Fees Paid</Label>
                     <div className="col-span-3 flex items-center">
-                      <input 
-                        type="checkbox" 
+                      <Checkbox 
                         id="feesPaid"
                         checked={formData.feesPaid}
-                        onChange={(e) => handleCheckboxChange('feesPaid', e.target.checked)}
-                        className="mr-2 h-4 w-4"
+                        onCheckedChange={(checked) => handleCheckboxChange('feesPaid', checked)}
                       />
-                      <Label htmlFor="feesPaid">Yes</Label>
+                      <Label htmlFor="feesPaid" className="ml-2">Yes</Label>
                     </div>
                   </div>
                 </div>
@@ -399,9 +403,14 @@ const EnrollmentPage = () => {
                         }
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" onClick={() => handleEditEnrollment(enrollment)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
+                        <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="sm" onClick={() => handleEditEnrollment(enrollment)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleViewDocuments(enrollment)}>
+                            <FileCheck className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -426,7 +435,21 @@ const EnrollmentPage = () => {
         </TabsContent>
         
         <TabsContent value="requirements" className="mt-6">
-          <DocumentRequirements studentId={selectedEnrollment?.studentId || null} />
+          {selectedEnrollment ? (
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">
+                  Documents for {selectedEnrollment.studentName} ({selectedEnrollment.studentId})
+                </h3>
+                <Button variant="outline" onClick={() => setSelectedEnrollment(null)}>
+                  View All Requirements
+                </Button>
+              </div>
+              <DocumentRequirements studentId={selectedEnrollment.studentId} />
+            </div>
+          ) : (
+            <DocumentRequirements studentId={null} />
+          )}
         </TabsContent>
       </Tabs>
     </MainLayout>

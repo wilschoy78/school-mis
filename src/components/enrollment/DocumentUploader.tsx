@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Upload, X, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
-export const DocumentUploader = ({ open, setOpen, requirement, studentId }) => {
+export const DocumentUploader = ({ open, setOpen, requirement, studentId, onUploadSuccess }) => {
   const [file, setFile] = useState(null);
   const [progress, setProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
@@ -67,6 +67,11 @@ export const DocumentUploader = ({ open, setOpen, requirement, studentId }) => {
           clearInterval(interval);
           setUploading(false);
           setUploadStatus('success');
+          
+          // Call the success callback if provided
+          if (onUploadSuccess && requirement) {
+            onUploadSuccess(requirement.id);
+          }
           
           toast({
             title: "Upload successful",

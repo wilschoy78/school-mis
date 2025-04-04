@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,10 +12,11 @@ import {
   Table, TableBody, TableCaption, TableCell, 
   TableHead, TableHeader, TableRow 
 } from '@/components/ui/table';
-import { PlusCircle, FileText, X, Upload } from 'lucide-react';
+import { PlusCircle, FileText, X, Upload, CheckCircle, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { DocumentUploader } from './DocumentUploader';
+import { Progress } from '@/components/ui/progress';
 
 const initialRequirements = [
   { 
@@ -52,6 +53,28 @@ const initialRequirements = [
   }
 ];
 
+// Mock student document submission database
+const mockStudentDocuments = {
+  'S001': {
+    '1': { submitted: true, dateSubmitted: '2023-08-20', verifiedBy: 'Admin' },
+    '2': { submitted: true, dateSubmitted: '2023-08-21', verifiedBy: 'Admin' },
+    '3': { submitted: false, dateSubmitted: null, verifiedBy: null },
+    '4': { submitted: false, dateSubmitted: null, verifiedBy: null }
+  },
+  'S002': {
+    '1': { submitted: true, dateSubmitted: '2023-08-15', verifiedBy: 'Admin' },
+    '2': { submitted: true, dateSubmitted: '2023-08-15', verifiedBy: 'Admin' },
+    '3': { submitted: true, dateSubmitted: '2023-08-16', verifiedBy: 'Admin' },
+    '4': { submitted: false, dateSubmitted: null, verifiedBy: null }
+  },
+  'S003': {
+    '1': { submitted: true, dateSubmitted: '2023-08-22', verifiedBy: 'Admin' },
+    '2': { submitted: false, dateSubmitted: null, verifiedBy: null },
+    '3': { submitted: false, dateSubmitted: null, verifiedBy: null },
+    '4': { submitted: false, dateSubmitted: null, verifiedBy: null }
+  }
+};
+
 export const DocumentRequirements = ({ studentId }) => {
   const [requirements, setRequirements] = useState(initialRequirements);
   const [uploaderOpen, setUploaderOpen] = useState(false);
@@ -64,7 +87,19 @@ export const DocumentRequirements = ({ studentId }) => {
     fileTypes: '.pdf,.jpg,.png',
     maxSize: 5
   });
+  const [studentDocuments, setStudentDocuments] = useState({});
   const { toast } = useToast();
+
+  // Load student documents when studentId changes
+  useEffect(() => {
+    if (studentId) {
+      // In a real app, this would be an API call
+      const studentDocs = mockStudentDocuments[studentId] || {};
+      setStudentDocuments(studentDocs);
+    } else {
+      setStudentDocuments({});
+    }
+  }, [studentId]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -152,6 +187,75 @@ export const DocumentRequirements = ({ studentId }) => {
     setSelectedRequirement(requirement);
     setUploaderOpen(true);
   };
+
+  const toggleDocumentStatus = (requirementId) => {
+    if (!studentId) {
+      toast({
+        title: "Error",
+        description: "Please select a student first",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setStudentDocuments(prev => {
+      const existingDoc = prev[requirementId] || { 
+        submitted: false, 
+        dateSubmitted: null, 
+        verifiedBy: null
+      };
+      
+      const updatedDoc = {
+        ...existingDoc,
+        submitted: !existingDoc.submitted,
+        dateSubmitted: !existingDoc.submitted ? new Date().toISOString().split('T')[0] : null,
+        verifiedBy: !existingDoc.submitted ? 'Admin' : null
+      };
+
+      // In a real app, this would be an API call to update the database
+      if (!existingDoc.submitted) {
+        toast({
+          title: "Document Verified",
+          description: "Document has been marked as submitted"
+        });
+      } else {
+        toast({
+          title: "Document Status Updated",
+          description: "Document has been marked as not submitted"
+        });
+      }
+
+      return { ...prev, [requirementId]: updatedDoc };
+    });
+
+    // In a real app, you would save this to your database
+    // For the mock data, we're just updating the local state
+    if (mockStudentDocuments[studentId]) {
+      mockStudentDocuments[studentId][requirementId] = {
+        ...mockStudentDocuments[studentId][requirementId],
+        submitted: !mockStudentDocuments[studentId][requirementId]?.submitted,
+        dateSubmitted: !mockStudentDocuments[studentId][requirementId]?.submitted ? 
+          new Date().toISOString().split('T')[0] : null,
+        verifiedBy: !mockStudentDocuments[studentId][requirementId]?.submitted ? 'Admin' : null
+      };
+    }
+  };
+
+  // Calculate completion percentage
+  const calculateCompletion = () => {
+    if (!studentId || !Object.keys(studentDocuments).length) return 0;
+    
+    const requiredDocs = requirements.filter(req => req.required);
+    if (requiredDocs.length === 0) return 100;
+    
+    const submittedRequired = requiredDocs.filter(req => 
+      studentDocuments[req.id]?.submitted
+    ).length;
+    
+    return Math.round((submittedRequired / requiredDocs.length) * 100);
+  };
+
+  const completionPercentage = calculateCompletion();
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
@@ -241,6 +345,16 @@ export const DocumentRequirements = ({ studentId }) => {
         </Dialog>
       </div>
 
+      {studentId && (
+        <div className="mb-6 space-y-2">
+          <div className="flex justify-between items-center">
+            <h4 className="font-medium">Completion Status</h4>
+            <span className="text-sm font-semibold">{completionPercentage}%</span>
+          </div>
+          <Progress value={completionPercentage} className="h-2" />
+        </div>
+      )}
+
       <Table>
         <TableCaption>List of document requirements for enrollment</TableCaption>
         <TableHeader>
@@ -248,6 +362,7 @@ export const DocumentRequirements = ({ studentId }) => {
             <TableHead>Requirement</TableHead>
             <TableHead>Description</TableHead>
             <TableHead>Status</TableHead>
+            {studentId && <TableHead>Submitted</TableHead>}
             <TableHead>File Types</TableHead>
             <TableHead>Max Size</TableHead>
             <TableHead className="text-right">Actions</TableHead>
@@ -265,6 +380,22 @@ export const DocumentRequirements = ({ studentId }) => {
                     <Badge className="bg-blue-500">Optional</Badge>
                   }
                 </TableCell>
+                {studentId && (
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Checkbox 
+                        id={`doc-${requirement.id}`}
+                        checked={!!studentDocuments[requirement.id]?.submitted}
+                        onCheckedChange={() => toggleDocumentStatus(requirement.id)}
+                      />
+                      {studentDocuments[requirement.id]?.submitted ? (
+                        <Badge className="bg-green-500">Submitted</Badge>
+                      ) : (
+                        <Badge className="bg-yellow-500">Pending</Badge>
+                      )}
+                    </div>
+                  </TableCell>
+                )}
                 <TableCell>{requirement.fileTypes.join(', ')}</TableCell>
                 <TableCell>{requirement.maxSize} MB</TableCell>
                 <TableCell className="text-right">
@@ -281,7 +412,7 @@ export const DocumentRequirements = ({ studentId }) => {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-6">
+              <TableCell colSpan={studentId ? 7 : 6} className="text-center py-6">
                 No requirements found
               </TableCell>
             </TableRow>
@@ -294,6 +425,18 @@ export const DocumentRequirements = ({ studentId }) => {
         setOpen={setUploaderOpen}
         requirement={selectedRequirement}
         studentId={studentId}
+        onUploadSuccess={(requirementId) => {
+          if (studentId) {
+            setStudentDocuments(prev => ({
+              ...prev,
+              [requirementId]: {
+                submitted: true,
+                dateSubmitted: new Date().toISOString().split('T')[0],
+                verifiedBy: 'System'
+              }
+            }));
+          }
+        }}
       />
     </div>
   );
