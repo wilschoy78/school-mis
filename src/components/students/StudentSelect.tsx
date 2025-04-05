@@ -32,10 +32,11 @@ export const StudentSelect: React.FC<StudentSelectProps> = ({
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
-  const selectedStudent = students?.find(student => student.id === value);
-  
-  // Ensure students is always an array to prevent "undefined is not iterable" errors
+  // Ensure students is always an array
   const safeStudents = Array.isArray(students) ? students : [];
+  
+  // Find the selected student
+  const selectedStudent = safeStudents.find(student => student.id === value);
   
   // Filter the students based on search query
   const filteredStudents = searchQuery
@@ -44,9 +45,10 @@ export const StudentSelect: React.FC<StudentSelectProps> = ({
         student.id.toLowerCase().includes(searchQuery.toLowerCase()))
     : safeStudents.slice(0, 10); // Limit initial list to 10 students
   
-  const handleSelect = useCallback((studentId: string) => {
-    const student = safeStudents.find(s => s.id === studentId);
-    onValueChange(studentId, student);
+  // Handle student selection
+  const handleSelect = useCallback((currentValue: string) => {
+    const student = safeStudents.find(s => s.id === currentValue);
+    onValueChange(currentValue, student);
     setOpen(false);
     setSearchQuery('');
   }, [safeStudents, onValueChange]);
@@ -83,31 +85,32 @@ export const StudentSelect: React.FC<StudentSelectProps> = ({
               onValueChange={setSearchQuery}
             />
           </div>
-          <CommandEmpty>No student found.</CommandEmpty>
+          {/* Show when no results are found */}
+          <CommandEmpty className="py-6 text-center text-sm">
+            No student found.
+          </CommandEmpty>
           <CommandGroup className="max-h-[200px] overflow-auto">
-            {filteredStudents.length > 0 ? (
-              filteredStudents.map(student => (
-                <CommandItem
-                  key={student.id}
-                  value={student.id}
-                  onSelect={handleSelect}
-                  className="flex items-center"
-                >
-                  <div className="flex-1">
-                    {student.name} 
-                    <span className="ml-2 text-xs text-muted-foreground">({student.id})</span>
-                  </div>
-                  {student.id === value && (
-                    <Check className="ml-2 h-4 w-4" />
-                  )}
-                </CommandItem>
-              ))
-            ) : (
-              searchQuery ? (
-                <div className="py-6 text-center text-sm">No results found</div>
-              ) : (
-                <div className="py-6 text-center text-sm">Type to search students</div>
-              )
+            {filteredStudents.map(student => (
+              <CommandItem
+                key={student.id}
+                value={student.id}
+                onSelect={(currentValue) => handleSelect(currentValue)}
+                className="flex items-center"
+              >
+                <div className="flex-1">
+                  {student.name} 
+                  <span className="ml-2 text-xs text-muted-foreground">({student.id})</span>
+                </div>
+                {student.id === value && (
+                  <Check className="ml-2 h-4 w-4" />
+                )}
+              </CommandItem>
+            ))}
+            {/* Show a message when there are no students to display */}
+            {filteredStudents.length === 0 && !searchQuery && (
+              <div className="py-6 text-center text-sm">
+                Type to search students
+              </div>
             )}
           </CommandGroup>
         </Command>
