@@ -85,7 +85,6 @@ export const StudentSelect: React.FC<StudentSelectProps> = ({
               onValueChange={setSearchQuery}
             />
           </div>
-          {/* Show when no results are found */}
           <CommandEmpty className="py-6 text-center text-sm">
             No student found.
           </CommandEmpty>
@@ -106,7 +105,6 @@ export const StudentSelect: React.FC<StudentSelectProps> = ({
                 )}
               </CommandItem>
             ))}
-            {/* Show a message when there are no students to display */}
             {filteredStudents.length === 0 && !searchQuery && (
               <div className="py-6 text-center text-sm">
                 Type to search students
