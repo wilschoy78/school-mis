@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +23,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays, isAfter } from 'date-fns';
+import { StudentSelect } from '@/components/students/StudentSelect';
 
 interface Book {
   id: string;
@@ -195,13 +195,15 @@ export const BorrowingSystem: React.FC = () => {
     setBorrowRecords(updatedRecords);
   };
 
-  // Check for overdue books
   React.useEffect(() => {
     updateOverdueStatus();
-    // Update status every day
     const intervalId = setInterval(updateOverdueStatus, 86400000);
     return () => clearInterval(intervalId);
   }, [borrowRecords]);
+
+  const handleStudentSelect = (value: string, student: any) => {
+    setSelectedStudent(value);
+  };
 
   return (
     <div className="space-y-6">
@@ -240,19 +242,13 @@ export const BorrowingSystem: React.FC = () => {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="student">Select Student</Label>
-                <select 
-                  id="student"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                <StudentSelect
+                  students={mockStudents}
                   value={selectedStudent}
-                  onChange={(e) => setSelectedStudent(e.target.value)}
-                >
-                  <option value="">-- Select a student --</option>
-                  {mockStudents.map(student => (
-                    <option key={student.id} value={student.id}>
-                      {student.name} ({student.id})
-                    </option>
-                  ))}
-                </select>
+                  onValueChange={handleStudentSelect}
+                  placeholder="Search for a student..."
+                  className="w-full"
+                />
               </div>
               <div className="grid gap-2">
                 <Label>Loan Period</Label>

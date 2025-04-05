@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { 
   Select,
   SelectContent,
@@ -7,6 +7,11 @@ import {
   SelectTrigger,
   SelectValue 
 } from '@/components/ui/select';
+import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Check, ChevronsUpDown, Search } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Student {
   id: string;
@@ -32,32 +37,80 @@ export const StudentSelect: React.FC<StudentSelectProps> = ({
   placeholder = "Select a student",
   className
 }) => {
-  const handleValueChange = (newValue: string) => {
-    const selectedStudent = students.find(student => student.id === newValue);
-    onValueChange(newValue, selectedStudent);
-  };
+  const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  const selectedStudent = students.find(student => student.id === value);
+  
+  const filteredStudents = searchQuery 
+    ? students.filter(student => 
+        student.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        student.id.toLowerCase().includes(searchQuery.toLowerCase()))
+    : students.slice(0, 10); // Limit initial list to 10 students
+  
+  const handleSelect = useCallback((studentId: string) => {
+    const student = students.find(s => s.id === studentId);
+    onValueChange(studentId, student);
+    setOpen(false);
+    setSearchQuery('');
+  }, [students, onValueChange]);
 
   return (
-    <Select 
-      value={value} 
-      onValueChange={handleValueChange}
-    >
-      <SelectTrigger className={className}>
-        <SelectValue placeholder={placeholder} />
-      </SelectTrigger>
-      <SelectContent>
-        {students.length > 0 ? (
-          students.map((student) => (
-            <SelectItem key={student.id} value={student.id}>
-              {student.name} ({student.id})
-            </SelectItem>
-          ))
-        ) : (
-          <SelectItem value="no-students" disabled>
-            No students available
-          </SelectItem>
-        )}
-      </SelectContent>
-    </Select>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <div className={cn("w-full", className)}>
+          <button
+            type="button"
+            className={cn(
+              "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+              className
+            )}
+            role="combobox"
+            aria-expanded={open}
+            aria-label="Select a student"
+          >
+            <span className="flex-1 truncate text-left">
+              {selectedStudent ? `${selectedStudent.name} (${selectedStudent.id})` : placeholder}
+            </span>
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </button>
+        </div>
+      </PopoverTrigger>
+      <PopoverContent className="w-[300px] p-0" align="start">
+        <Command className="rounded-lg border shadow-md">
+          <div className="flex items-center border-b px-3">
+            <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+            <CommandInput
+              placeholder="Search students..."
+              className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+              value={searchQuery}
+              onValueChange={setSearchQuery}
+            />
+          </div>
+          <CommandEmpty>No student found.</CommandEmpty>
+          <CommandGroup className="max-h-[200px] overflow-auto">
+            {filteredStudents.map(student => (
+              <CommandItem
+                key={student.id}
+                value={student.id}
+                onSelect={handleSelect}
+                className="flex items-center"
+              >
+                <div className="flex-1">
+                  {student.name} 
+                  <span className="ml-2 text-xs text-muted-foreground">({student.id})</span>
+                </div>
+                {student.id === value && (
+                  <Check className="ml-2 h-4 w-4" />
+                )}
+              </CommandItem>
+            ))}
+            {filteredStudents.length === 0 && searchQuery === '' && (
+              <div className="py-6 text-center text-sm">Type to search students</div>
+            )}
+          </CommandGroup>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 };
