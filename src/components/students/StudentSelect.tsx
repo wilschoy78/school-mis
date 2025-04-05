@@ -23,7 +23,7 @@ interface StudentSelectProps {
 }
 
 export const StudentSelect: React.FC<StudentSelectProps> = ({
-  students,
+  students = [], // Provide a default empty array to prevent undefined
   value,
   onValueChange,
   placeholder = "Select a student",
@@ -32,21 +32,24 @@ export const StudentSelect: React.FC<StudentSelectProps> = ({
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
-  const selectedStudent = students.find(student => student.id === value);
+  const selectedStudent = students?.find(student => student.id === value);
   
-  // Make sure we always have a valid array for filtering
-  const filteredStudents = searchQuery && students 
-    ? students.filter(student => 
+  // Ensure students is always an array to prevent "undefined is not iterable" errors
+  const safeStudents = Array.isArray(students) ? students : [];
+  
+  // Filter the students based on search query
+  const filteredStudents = searchQuery
+    ? safeStudents.filter(student => 
         student.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
         student.id.toLowerCase().includes(searchQuery.toLowerCase()))
-    : students ? students.slice(0, 10) : []; // Limit initial list to 10 students
+    : safeStudents.slice(0, 10); // Limit initial list to 10 students
   
   const handleSelect = useCallback((studentId: string) => {
-    const student = students.find(s => s.id === studentId);
+    const student = safeStudents.find(s => s.id === studentId);
     onValueChange(studentId, student);
     setOpen(false);
     setSearchQuery('');
-  }, [students, onValueChange]);
+  }, [safeStudents, onValueChange]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
