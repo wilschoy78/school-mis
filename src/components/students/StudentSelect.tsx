@@ -44,7 +44,7 @@ export const StudentSelect: React.FC<StudentSelectProps> = ({
         student.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
         student.id.toLowerCase().includes(searchQuery.toLowerCase()))
     : safeStudents.slice(0, 10); // Limit initial list to 10 students
-  
+
   // Handle student selection
   const handleSelect = useCallback((currentValue: string) => {
     // Only proceed if we have a valid string
@@ -89,19 +89,17 @@ export const StudentSelect: React.FC<StudentSelectProps> = ({
             />
           </div>
           
-          <CommandEmpty className="py-6 text-center text-sm">
+          <CommandEmpty>
             No student found.
           </CommandEmpty>
           
-          {/* Explicitly check if filteredStudents exists and has items */}
-          <CommandGroup className="max-h-[200px] overflow-auto">
+          <CommandGroup>
             {filteredStudents && filteredStudents.length > 0 ? (
               filteredStudents.map(student => (
                 <CommandItem
                   key={student.id}
                   value={student.id}
                   onSelect={handleSelect}
-                  className="flex items-center"
                 >
                   <div className="flex-1">
                     {student.name} 
