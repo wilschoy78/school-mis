@@ -23,8 +23,8 @@ interface StudentSelectProps {
 }
 
 export const StudentSelect: React.FC<StudentSelectProps> = ({
-  students = [], // Provide a default empty array to prevent undefined
-  value,
+  students = [], // Default empty array
+  value = '',   // Default empty string
   onValueChange,
   placeholder = "Select a student",
   className
@@ -32,7 +32,7 @@ export const StudentSelect: React.FC<StudentSelectProps> = ({
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Ensure students is always an array
+  // Ensure students is always an array to prevent iteration errors
   const safeStudents = Array.isArray(students) ? students : [];
   
   // Find the selected student
@@ -47,6 +47,9 @@ export const StudentSelect: React.FC<StudentSelectProps> = ({
   
   // Handle student selection
   const handleSelect = useCallback((currentValue: string) => {
+    // Only proceed if we have a valid string
+    if (typeof currentValue !== 'string') return;
+    
     const student = safeStudents.find(s => s.id === currentValue);
     onValueChange(currentValue, student);
     setOpen(false);
@@ -85,30 +88,36 @@ export const StudentSelect: React.FC<StudentSelectProps> = ({
               onValueChange={setSearchQuery}
             />
           </div>
+          
           <CommandEmpty className="py-6 text-center text-sm">
             No student found.
           </CommandEmpty>
+          
+          {/* Explicitly check if filteredStudents exists and has items */}
           <CommandGroup className="max-h-[200px] overflow-auto">
-            {filteredStudents.map(student => (
-              <CommandItem
-                key={student.id}
-                value={student.id}
-                onSelect={(currentValue) => handleSelect(currentValue)}
-                className="flex items-center"
-              >
-                <div className="flex-1">
-                  {student.name} 
-                  <span className="ml-2 text-xs text-muted-foreground">({student.id})</span>
+            {filteredStudents && filteredStudents.length > 0 ? (
+              filteredStudents.map(student => (
+                <CommandItem
+                  key={student.id}
+                  value={student.id}
+                  onSelect={handleSelect}
+                  className="flex items-center"
+                >
+                  <div className="flex-1">
+                    {student.name} 
+                    <span className="ml-2 text-xs text-muted-foreground">({student.id})</span>
+                  </div>
+                  {student.id === value && (
+                    <Check className="ml-2 h-4 w-4" />
+                  )}
+                </CommandItem>
+              ))
+            ) : (
+              searchQuery ? null : (
+                <div className="py-6 text-center text-sm">
+                  Type to search students
                 </div>
-                {student.id === value && (
-                  <Check className="ml-2 h-4 w-4" />
-                )}
-              </CommandItem>
-            ))}
-            {filteredStudents.length === 0 && !searchQuery && (
-              <div className="py-6 text-center text-sm">
-                Type to search students
-              </div>
+              )
             )}
           </CommandGroup>
         </Command>
