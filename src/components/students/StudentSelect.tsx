@@ -90,7 +90,7 @@ export const StudentSelect: React.FC<StudentSelectProps> = ({
                 <CommandItem
                   key={student.id}
                   value={student.id}
-                  onSelect={() => handleSelect(student.id)}
+                  onSelect={handleSelect}
                   className="flex items-center"
                 >
                   <div className="flex-1">
