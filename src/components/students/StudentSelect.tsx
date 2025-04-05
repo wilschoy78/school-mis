@@ -1,14 +1,6 @@
 
 import React, { useState, useCallback } from 'react';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue 
-} from '@/components/ui/select';
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
-import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Check, ChevronsUpDown, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -42,11 +34,12 @@ export const StudentSelect: React.FC<StudentSelectProps> = ({
   
   const selectedStudent = students.find(student => student.id === value);
   
-  const filteredStudents = searchQuery 
+  // Make sure we always have a valid array for filtering
+  const filteredStudents = searchQuery && students 
     ? students.filter(student => 
         student.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
         student.id.toLowerCase().includes(searchQuery.toLowerCase()))
-    : students.slice(0, 10); // Limit initial list to 10 students
+    : students ? students.slice(0, 10) : []; // Limit initial list to 10 students
   
   const handleSelect = useCallback((studentId: string) => {
     const student = students.find(s => s.id === studentId);
@@ -89,24 +82,29 @@ export const StudentSelect: React.FC<StudentSelectProps> = ({
           </div>
           <CommandEmpty>No student found.</CommandEmpty>
           <CommandGroup className="max-h-[200px] overflow-auto">
-            {filteredStudents.map(student => (
-              <CommandItem
-                key={student.id}
-                value={student.id}
-                onSelect={handleSelect}
-                className="flex items-center"
-              >
-                <div className="flex-1">
-                  {student.name} 
-                  <span className="ml-2 text-xs text-muted-foreground">({student.id})</span>
-                </div>
-                {student.id === value && (
-                  <Check className="ml-2 h-4 w-4" />
-                )}
-              </CommandItem>
-            ))}
-            {filteredStudents.length === 0 && searchQuery === '' && (
-              <div className="py-6 text-center text-sm">Type to search students</div>
+            {filteredStudents.length > 0 ? (
+              filteredStudents.map(student => (
+                <CommandItem
+                  key={student.id}
+                  value={student.id}
+                  onSelect={() => handleSelect(student.id)}
+                  className="flex items-center"
+                >
+                  <div className="flex-1">
+                    {student.name} 
+                    <span className="ml-2 text-xs text-muted-foreground">({student.id})</span>
+                  </div>
+                  {student.id === value && (
+                    <Check className="ml-2 h-4 w-4" />
+                  )}
+                </CommandItem>
+              ))
+            ) : (
+              searchQuery ? (
+                <div className="py-6 text-center text-sm">No results found</div>
+              ) : (
+                <div className="py-6 text-center text-sm">Type to search students</div>
+              )
             )}
           </CommandGroup>
         </Command>
