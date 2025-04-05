@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -21,6 +20,22 @@ import { format } from 'date-fns';
 import DataPagination from '@/components/common/DataPagination';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DocumentRequirements } from '@/components/enrollment/DocumentRequirements';
+import { StudentSelect } from '@/components/students/StudentSelect';
+
+const studentsData = [
+  { id: 'S001', name: 'John Doe', grade: '10', section: 'A', gender: 'Male', contact: '555-1234' },
+  { id: 'S002', name: 'Jane Smith', grade: '11', section: 'B', gender: 'Female', contact: '555-5678' },
+  { id: 'S003', name: 'Michael Johnson', grade: '9', section: 'C', gender: 'Male', contact: '555-9012' },
+  { id: 'S004', name: 'Emily Brown', grade: '12', section: 'A', gender: 'Female', contact: '555-3456' },
+  { id: 'S005', name: 'David Wilson', grade: '10', section: 'B', gender: 'Male', contact: '555-7890' },
+  { id: 'S006', name: 'Sarah Davis', grade: '11', section: 'A', gender: 'Female', contact: '555-2468' },
+  { id: 'S007', name: 'James Miller', grade: '9', section: 'B', gender: 'Male', contact: '555-1357' },
+  { id: 'S008', name: 'Jessica Wilson', grade: '12', section: 'C', gender: 'Female', contact: '555-3690' },
+  { id: 'S009', name: 'Robert Taylor', grade: '10', section: 'A', gender: 'Male', contact: '555-4812' },
+  { id: 'S010', name: 'Linda Anderson', grade: '11', section: 'B', gender: 'Female', contact: '555-9753' },
+  { id: 'S011', name: 'Thomas Martinez', grade: '9', section: 'C', gender: 'Male', contact: '555-8642' },
+  { id: 'S012', name: 'Patricia Lewis', grade: '12', section: 'A', gender: 'Female', contact: '555-7531' },
+];
 
 const enrollmentData = [
   { 
@@ -109,6 +124,7 @@ const ITEMS_PER_PAGE = 5;
 
 const EnrollmentPage = () => {
   const [enrollments, setEnrollments] = useState(enrollmentData);
+  const [students, setStudents] = useState(studentsData);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedEnrollment, setSelectedEnrollment] = useState(null);
@@ -119,6 +135,9 @@ const EnrollmentPage = () => {
     studentId: '',
     academicYear: '2023-2024',
     grade: '',
+    section: '',
+    gender: '',
+    contact: '',
     status: 'Pending',
     feesPaid: false
   });
@@ -139,6 +158,30 @@ const EnrollmentPage = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
+
+  const handleStudentSelect = (value, selectedStudent) => {
+    if (selectedStudent) {
+      setFormData(prev => ({
+        ...prev,
+        studentId: selectedStudent.id,
+        studentName: selectedStudent.name,
+        grade: selectedStudent.grade || '',
+        section: selectedStudent.section || '',
+        gender: selectedStudent.gender || '',
+        contact: selectedStudent.contact || ''
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        studentId: value,
+        studentName: '',
+        grade: '',
+        section: '',
+        gender: '',
+        contact: ''
+      }));
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -196,6 +239,9 @@ const EnrollmentPage = () => {
       studentId: '',
       academicYear: '2023-2024',
       grade: '',
+      section: '',
+      gender: '',
+      contact: '',
       status: 'Pending',
       feesPaid: false
     });
@@ -210,6 +256,9 @@ const EnrollmentPage = () => {
       studentId: enrollment.studentId,
       academicYear: enrollment.academicYear,
       grade: enrollment.grade,
+      section: enrollment.section,
+      gender: enrollment.gender,
+      contact: enrollment.contact,
       status: enrollment.status,
       feesPaid: enrollment.feesPaid
     });
@@ -229,6 +278,21 @@ const EnrollmentPage = () => {
     } else {
       return <Badge className="bg-red-500">Inactive</Badge>;
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      studentName: '',
+      studentId: '',
+      academicYear: '2023-2024',
+      grade: '',
+      section: '',
+      gender: '',
+      contact: '',
+      status: 'Pending',
+      feesPaid: false
+    });
+    setSelectedEnrollment(null);
   };
 
   return (
@@ -262,7 +326,7 @@ const EnrollmentPage = () => {
                   New Enrollment
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-md">
                 <DialogHeader>
                   <DialogTitle>{selectedEnrollment ? 'Edit Enrollment' : 'New Enrollment'}</DialogTitle>
                   <DialogDescription>
@@ -271,25 +335,54 @@ const EnrollmentPage = () => {
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="studentId" className="text-right">Student</Label>
+                    <div className="col-span-3">
+                      <StudentSelect 
+                        students={students}
+                        value={formData.studentId}
+                        onValueChange={handleStudentSelect}
+                        placeholder="Select a student"
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="studentName" className="text-right">Student Name</Label>
                     <Input 
                       id="studentName" 
                       name="studentName" 
                       value={formData.studentName} 
                       onChange={handleInputChange} 
-                      className="col-span-3" 
+                      className="col-span-3"
+                      readOnly
                     />
                   </div>
+                  
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="studentId" className="text-right">Student ID</Label>
+                    <Label htmlFor="grade" className="text-right">Grade</Label>
                     <Input 
-                      id="studentId" 
-                      name="studentId" 
-                      value={formData.studentId} 
+                      id="grade" 
+                      name="grade" 
+                      value={formData.grade} 
                       onChange={handleInputChange} 
-                      className="col-span-3" 
+                      className="col-span-3"
+                      readOnly
                     />
                   </div>
+                  
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="section" className="text-right">Section</Label>
+                    <Input 
+                      id="section" 
+                      name="section" 
+                      value={formData.section} 
+                      onChange={handleInputChange} 
+                      className="col-span-3"
+                      readOnly
+                    />
+                  </div>
+                  
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="academicYear" className="text-right">Academic Year</Label>
                     <Select 
@@ -306,23 +399,7 @@ const EnrollmentPage = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="grade" className="text-right">Grade</Label>
-                    <Select 
-                      value={formData.grade} 
-                      onValueChange={(value) => handleSelectChange('grade', value)}
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Select grade" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="9">Grade 9</SelectItem>
-                        <SelectItem value="10">Grade 10</SelectItem>
-                        <SelectItem value="11">Grade 11</SelectItem>
-                        <SelectItem value="12">Grade 12</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="status" className="text-right">Status</Label>
                     <Select 
@@ -339,6 +416,7 @@ const EnrollmentPage = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="feesPaid" className="text-right">Fees Paid</Label>
                     <div className="col-span-3 flex items-center">
@@ -354,15 +432,7 @@ const EnrollmentPage = () => {
                 <DialogFooter>
                   <Button variant="outline" onClick={() => {
                     setIsAddDialogOpen(false);
-                    setSelectedEnrollment(null);
-                    setFormData({
-                      studentName: '',
-                      studentId: '',
-                      academicYear: '2023-2024',
-                      grade: '',
-                      status: 'Pending',
-                      feesPaid: false
-                    });
+                    resetForm();
                   }}>
                     Cancel
                   </Button>
