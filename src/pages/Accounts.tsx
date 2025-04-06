@@ -13,7 +13,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Search, Pencil, Receipt, ArrowUp, ArrowDown } from 'lucide-react';
+import { PlusCircle, Search, Pencil, Receipt, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import DataPagination from '@/components/common/DataPagination';
@@ -111,12 +111,17 @@ const accountsData = [
 
 const ITEMS_PER_PAGE = 5;
 
+type SortDirection = 'asc' | 'desc' | null;
+type SortField = 'studentName' | 'studentId' | 'transactionType' | 'amount' | 'category' | 'date' | 'paymentMethod' | 'status' | null;
+
 const AccountsPage = () => {
   const [transactions, setTransactions] = useState(accountsData);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState<SortField>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [formData, setFormData] = useState({
     studentName: '',
     studentId: '',
@@ -128,13 +133,57 @@ const AccountsPage = () => {
   });
   const { toast } = useToast();
 
-  const filteredTransactions = transactions.filter(transaction => 
-    transaction.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    transaction.studentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    transaction.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    transaction.status.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortDirection(null);
+        setSortField(null);
+      } else {
+        setSortDirection('asc');
+      }
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
 
+  const sortAndFilterTransactions = () => {
+    let result = transactions.filter(transaction => 
+      transaction.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.studentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.status.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    
+    if (sortField && sortDirection) {
+      result = [...result].sort((a, b) => {
+        let aValue, bValue;
+        
+        if (sortField === 'amount') {
+          aValue = a[sortField];
+          bValue = b[sortField];
+        } else if (sortField === 'date') {
+          aValue = new Date(a[sortField]).getTime();
+          bValue = new Date(b[sortField]).getTime();
+        } else {
+          aValue = a[sortField]?.toString().toLowerCase() || '';
+          bValue = b[sortField]?.toString().toLowerCase() || '';
+        }
+        
+        if (sortDirection === 'asc') {
+          return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+        } else {
+          return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+        }
+      });
+    }
+    
+    return result;
+  };
+
+  const filteredTransactions = sortAndFilterTransactions();
   const totalPages = Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE);
   const paginatedTransactions = filteredTransactions.slice(
     (currentPage - 1) * ITEMS_PER_PAGE, 
@@ -143,7 +192,17 @@ const AccountsPage = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, sortField, sortDirection]);
+
+  const renderSortIcon = (field: SortField) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="ml-2 h-4 w-4" />;
+    }
+    
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="ml-2 h-4 w-4" /> 
+      : <ArrowDown className="ml-2 h-4 w-4" />;
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -407,14 +466,78 @@ const AccountsPage = () => {
           <TableCaption>Financial transactions history</TableCaption>
           <TableHeader>
             <TableRow>
-              <TableHead>Student</TableHead>
-              <TableHead>ID</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Method</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                onClick={() => handleSort('studentName')}
+              >
+                <div className="flex items-center">
+                  Student
+                  {renderSortIcon('studentName')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                onClick={() => handleSort('studentId')}
+              >
+                <div className="flex items-center">
+                  ID
+                  {renderSortIcon('studentId')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                onClick={() => handleSort('transactionType')}
+              >
+                <div className="flex items-center">
+                  Type
+                  {renderSortIcon('transactionType')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                onClick={() => handleSort('amount')}
+              >
+                <div className="flex items-center">
+                  Amount
+                  {renderSortIcon('amount')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                onClick={() => handleSort('category')}
+              >
+                <div className="flex items-center">
+                  Category
+                  {renderSortIcon('category')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                onClick={() => handleSort('date')}
+              >
+                <div className="flex items-center">
+                  Date
+                  {renderSortIcon('date')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                onClick={() => handleSort('paymentMethod')}
+              >
+                <div className="flex items-center">
+                  Method
+                  {renderSortIcon('paymentMethod')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                onClick={() => handleSort('status')}
+              >
+                <div className="flex items-center">
+                  Status
+                  {renderSortIcon('status')}
+                </div>
+              </TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>

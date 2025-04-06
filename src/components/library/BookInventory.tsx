@@ -1,9 +1,8 @@
-
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Search, PlusCircle, Edit, Trash2 } from 'lucide-react';
+import { Search, PlusCircle, Edit, Trash2, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { 
   Table,
   TableBody,
@@ -38,7 +37,7 @@ interface Book {
 const mockBooks: Book[] = [
   { id: '1', title: 'To Kill a Mockingbird', author: 'Harper Lee', isbn: '978-0446310789', quantity: 5, location: 'Fiction A-12', status: 'available' },
   { id: '2', title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', isbn: '978-0743273565', quantity: 3, location: 'Fiction B-7', status: 'low_stock' },
-  { id: '3', title: '1984', author: 'George Orwell', isbn: '978-0451524935', quantity: 0, location: 'Fiction C-3', status: 'out_of_stock' },
+  { id: '3', title: '1984', author: 'George Orwell', isbn: '978-0451526342', quantity: 0, location: 'Fiction C-3', status: 'out_of_stock' },
   { id: '4', title: 'The Catcher in the Rye', author: 'J.D. Salinger', isbn: '978-0316769488', quantity: 7, location: 'Fiction A-5', status: 'available' },
   { id: '5', title: 'Pride and Prejudice', author: 'Jane Austen', isbn: '978-0141439518', quantity: 2, location: 'Fiction B-9', status: 'low_stock' },
   { id: '6', title: 'The Hobbit', author: 'J.R.R. Tolkien', isbn: '978-0547928227', quantity: 4, location: 'Fantasy D-2', status: 'available' },
@@ -50,6 +49,9 @@ const mockBooks: Book[] = [
   { id: '12', title: 'Moby Dick', author: 'Herman Melville', isbn: '978-1503280786', quantity: 4, location: 'Classics A-3', status: 'available' },
 ];
 
+type SortDirection = 'asc' | 'desc' | null;
+type SortField = 'title' | 'author' | 'isbn' | 'quantity' | 'location' | 'status' | null;
+
 export const BookInventory: React.FC = () => {
   const [books, setBooks] = useState<Book[]>(mockBooks);
   const [searchTerm, setSearchTerm] = useState('');
@@ -60,6 +62,10 @@ export const BookInventory: React.FC = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const booksPerPage = 5;
+
+  // Sorting state
+  const [sortField, setSortField] = useState<SortField>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
   // New book form state
   const [newBook, setNewBook] = useState<Omit<Book, 'id' | 'status'>>({
@@ -75,17 +81,73 @@ export const BookInventory: React.FC = () => {
     setCurrentPage(1); // Reset to first page when searching
   };
 
-  const filteredBooks = books.filter(book => 
-    book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    book.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    book.isbn.includes(searchTerm)
-  );
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortDirection(null);
+        setSortField(null);
+      } else {
+        setSortDirection('asc');
+      }
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const renderSortIcon = (field: SortField) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="ml-2 h-4 w-4" />;
+    }
+    
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="ml-2 h-4 w-4" /> 
+      : <ArrowDown className="ml-2 h-4 w-4" />;
+  };
+
+  const sortAndFilterBooks = useMemo(() => {
+    // First filter
+    let result = books.filter(book => 
+      book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      book.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      book.isbn.includes(searchTerm)
+    );
+    
+    // Then sort
+    if (sortField && sortDirection) {
+      result = [...result].sort((a, b) => {
+        let aValue, bValue;
+        
+        if (sortField === 'quantity') {
+          aValue = a[sortField];
+          bValue = b[sortField];
+        } else {
+          aValue = String(a[sortField]).toLowerCase();
+          bValue = String(b[sortField]).toLowerCase();
+        }
+        
+        if (sortDirection === 'asc') {
+          return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+        } else {
+          return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+        }
+      });
+    }
+    
+    return result;
+  }, [books, searchTerm, sortField, sortDirection]);
 
   // Calculate pagination
   const indexOfLastBook = currentPage * booksPerPage;
   const indexOfFirstBook = indexOfLastBook - booksPerPage;
-  const currentBooks = filteredBooks.slice(indexOfFirstBook, indexOfLastBook);
-  const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
+  const currentBooks = sortAndFilterBooks.slice(indexOfFirstBook, indexOfLastBook);
+  const totalPages = Math.ceil(sortAndFilterBooks.length / booksPerPage);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, sortField, sortDirection]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -246,12 +308,60 @@ export const BookInventory: React.FC = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Author</TableHead>
-              <TableHead>ISBN</TableHead>
-              <TableHead>Quantity</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                onClick={() => handleSort('title')}
+              >
+                <div className="flex items-center">
+                  Title
+                  {renderSortIcon('title')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                onClick={() => handleSort('author')}
+              >
+                <div className="flex items-center">
+                  Author
+                  {renderSortIcon('author')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                onClick={() => handleSort('isbn')}
+              >
+                <div className="flex items-center">
+                  ISBN
+                  {renderSortIcon('isbn')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                onClick={() => handleSort('quantity')}
+              >
+                <div className="flex items-center">
+                  Quantity
+                  {renderSortIcon('quantity')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                onClick={() => handleSort('location')}
+              >
+                <div className="flex items-center">
+                  Location
+                  {renderSortIcon('location')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                onClick={() => handleSort('status')}
+              >
+                <div className="flex items-center">
+                  Status
+                  {renderSortIcon('status')}
+                </div>
+              </TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -362,7 +472,7 @@ export const BookInventory: React.FC = () => {
         </Table>
       </div>
       
-      {filteredBooks.length > 0 && (
+      {sortAndFilterBooks.length > 0 && (
         <div className="flex justify-center">
           <DataPagination 
             currentPage={currentPage} 

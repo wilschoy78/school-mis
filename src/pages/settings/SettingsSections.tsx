@@ -17,7 +17,7 @@ import {
   DialogHeader, DialogTitle, DialogTrigger, DialogFooter
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Edit, Trash2 } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 
 // Initial sections data
 const initialSections = [
@@ -36,6 +36,9 @@ interface Section {
   adviser: string;
 }
 
+type SortDirection = 'asc' | 'desc' | null;
+type SortField = 'name' | 'grade' | 'capacity' | 'adviser' | null;
+
 const SettingsSections = () => {
   const [sections, setSections] = useState<Section[]>(initialSections);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -46,8 +49,58 @@ const SettingsSections = () => {
     capacity: 30,
     adviser: ''
   });
+  const [sortField, setSortField] = useState<SortField>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   
   const { toast } = useToast();
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortDirection(null);
+        setSortField(null);
+      } else {
+        setSortDirection('asc');
+      }
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedSections = React.useMemo(() => {
+    if (!sortField || !sortDirection) return sections;
+    
+    return [...sections].sort((a, b) => {
+      let aValue, bValue;
+      
+      if (sortField === 'capacity') {
+        aValue = a[sortField];
+        bValue = b[sortField];
+      } else {
+        aValue = String(a[sortField]).toLowerCase();
+        bValue = String(b[sortField]).toLowerCase();
+      }
+      
+      if (sortDirection === 'asc') {
+        return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+      } else {
+        return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+      }
+    });
+  }, [sections, sortField, sortDirection]);
+
+  const renderSortIcon = (field: SortField) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="ml-2 h-4 w-4" />;
+    }
+    
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="ml-2 h-4 w-4" /> 
+      : <ArrowDown className="ml-2 h-4 w-4" />;
+  };
 
   const handleEditSection = (section: Section) => {
     setFormData({
@@ -221,43 +274,75 @@ const SettingsSections = () => {
             <TableCaption>A list of all class sections</TableCaption>
             <TableHeader>
               <TableRow>
-                <TableHead>Section Name</TableHead>
-                <TableHead>Grade Level</TableHead>
-                <TableHead>Capacity</TableHead>
-                <TableHead>Class Adviser</TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                  onClick={() => handleSort('name')}
+                >
+                  <div className="flex items-center">
+                    Section Name
+                    {renderSortIcon('name')}
+                  </div>
+                </TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                  onClick={() => handleSort('grade')}
+                >
+                  <div className="flex items-center">
+                    Grade Level
+                    {renderSortIcon('grade')}
+                  </div>
+                </TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                  onClick={() => handleSort('capacity')}
+                >
+                  <div className="flex items-center">
+                    Capacity
+                    {renderSortIcon('capacity')}
+                  </div>
+                </TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                  onClick={() => handleSort('adviser')}
+                >
+                  <div className="flex items-center">
+                    Class Adviser
+                    {renderSortIcon('adviser')}
+                  </div>
+                </TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sections.map((section) => (
-                <TableRow key={section.id}>
-                  <TableCell className="font-medium">{section.name}</TableCell>
-                  <TableCell>{section.grade}</TableCell>
-                  <TableCell>{section.capacity}</TableCell>
-                  <TableCell>{section.adviser}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => handleEditSection(section)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => handleDeleteSection(section.id)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              
-              {sections.length === 0 && (
+              {sortedSections.length > 0 ? (
+                sortedSections.map((section) => (
+                  <TableRow key={section.id}>
+                    <TableCell className="font-medium">{section.name}</TableCell>
+                    <TableCell>{section.grade}</TableCell>
+                    <TableCell>{section.capacity}</TableCell>
+                    <TableCell>{section.adviser}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => handleEditSection(section)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => handleDeleteSection(section.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
                 <TableRow>
                   <TableCell colSpan={5} className="h-24 text-center">
                     No sections found. Click "Add Section" to create one.
