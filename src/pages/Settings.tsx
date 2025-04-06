@@ -1,3 +1,4 @@
+
 import React, { useState, createContext, useContext } from 'react';
 import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
 import { 
@@ -6,7 +7,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Cog, Bell, Shield, FileText, School, Users, PanelLeft
+  Cog, Bell, Shield, FileText, School, Users, PanelLeft, GraduationCap
 } from 'lucide-react';
 
 export const SystemSettingsContext = createContext({
@@ -59,6 +60,12 @@ const SettingsPage = () => {
       description: "Configure your school information and preferences",
       icon: <School className="h-8 w-8 text-school-600" />,
       path: "/settings/school"
+    },
+    {
+      title: "Grade Levels",
+      description: "Manage grade levels used throughout the system",
+      icon: <GraduationCap className="h-8 w-8 text-green-600" />,
+      path: "/settings/grade-levels"
     },
     {
       title: "Notifications",

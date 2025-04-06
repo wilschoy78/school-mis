@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, Location } from 'react-router-dom';
 import { 
@@ -8,7 +7,7 @@ import {
   DollarSign, 
   Settings, 
   BookOpen,
-  Library as LibraryIcon,
+  LibraryIcon,
   UserCog,
   Bell,
   Shield,
@@ -81,6 +80,12 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
       path: '/settings/school',
       icon: <School className="w-4 h-4" />,
       roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
+    },
+    {
+      name: 'Grade Levels',
+      path: '/settings/grade-levels',
+      icon: <GraduationCap className="w-4 h-4" />,
+      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.REGISTRAR],
     },
     {
       name: 'Notifications',

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
 import { 
@@ -18,6 +17,8 @@ import {
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Edit, Trash2, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useGradeLevels } from './SettingsGradeLevels';
 
 // Initial sections data
 const initialSections = [
@@ -53,6 +54,7 @@ const SettingsSections = () => {
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   
   const { toast } = useToast();
+  const { gradeLevels } = useGradeLevels();
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -129,6 +131,10 @@ const SettingsSections = () => {
     setFormData(prev => ({ ...prev, [name]: name === 'capacity' ? Number(value) : value }));
   };
 
+  const handleSelectChange = (name, value) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
   const handleSubmit = () => {
     if (!formData.name || !formData.grade) {
       toast({
@@ -178,6 +184,8 @@ const SettingsSections = () => {
     });
   };
 
+  const sortedGradeLevels = [...gradeLevels].sort((a, b) => a.sequence - b.sequence);
+
   return (
     <MainLayout>
       <PageHeader 
@@ -226,14 +234,21 @@ const SettingsSections = () => {
                 
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="grade" className="text-right">Grade Level</Label>
-                  <Input 
-                    id="grade" 
-                    name="grade"
-                    value={formData.grade} 
-                    onChange={handleInputChange}
-                    className="col-span-3"
-                    placeholder="e.g., Grade 1"
-                  />
+                  <Select
+                    value={formData.grade}
+                    onValueChange={(value) => handleSelectChange('grade', value)}
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Select grade level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sortedGradeLevels.map((grade) => (
+                        <SelectItem key={grade.id} value={grade.name}>
+                          {grade.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div className="grid grid-cols-4 items-center gap-4">

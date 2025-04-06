@@ -15,20 +15,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Search, Pencil, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import DataPagination from '@/components/common/DataPagination';
+import { useGradeLevels } from './settings/SettingsGradeLevels';
 
 const studentsData = [
-  { id: '1', name: 'John Doe', grade: '10', section: 'A', gender: 'Male', contact: '555-1234' },
-  { id: '2', name: 'Jane Smith', grade: '11', section: 'B', gender: 'Female', contact: '555-5678' },
-  { id: '3', name: 'Michael Johnson', grade: '9', section: 'C', gender: 'Male', contact: '555-9012' },
-  { id: '4', name: 'Emily Brown', grade: '12', section: 'A', gender: 'Female', contact: '555-3456' },
-  { id: '5', name: 'David Wilson', grade: '10', section: 'B', gender: 'Male', contact: '555-7890' },
-  { id: '6', name: 'Sarah Davis', grade: '11', section: 'A', gender: 'Female', contact: '555-2468' },
-  { id: '7', name: 'James Miller', grade: '9', section: 'B', gender: 'Male', contact: '555-1357' },
-  { id: '8', name: 'Jessica Wilson', grade: '12', section: 'C', gender: 'Female', contact: '555-3690' },
-  { id: '9', name: 'Robert Taylor', grade: '10', section: 'A', gender: 'Male', contact: '555-4812' },
-  { id: '10', name: 'Linda Anderson', grade: '11', section: 'B', gender: 'Female', contact: '555-9753' },
-  { id: '11', name: 'Thomas Martinez', grade: '9', section: 'C', gender: 'Male', contact: '555-8642' },
-  { id: '12', name: 'Patricia Lewis', grade: '12', section: 'A', gender: 'Female', contact: '555-7531' },
+  { id: '1', name: 'John Doe', grade: 'Grade 10', section: 'A', gender: 'Male', contact: '555-1234' },
+  { id: '2', name: 'Jane Smith', grade: 'Grade 11', section: 'B', gender: 'Female', contact: '555-5678' },
+  { id: '3', name: 'Michael Johnson', grade: 'Grade 9', section: 'C', gender: 'Male', contact: '555-9012' },
+  { id: '4', name: 'Emily Brown', grade: 'Grade 12', section: 'A', gender: 'Female', contact: '555-3456' },
+  { id: '5', name: 'David Wilson', grade: 'Grade 10', section: 'B', gender: 'Male', contact: '555-7890' },
+  { id: '6', name: 'Sarah Davis', grade: 'Grade 11', section: 'A', gender: 'Female', contact: '555-2468' },
+  { id: '7', name: 'James Miller', grade: 'Grade 9', section: 'B', gender: 'Male', contact: '555-1357' },
+  { id: '8', name: 'Jessica Wilson', grade: 'Grade 12', section: 'C', gender: 'Female', contact: '555-3690' },
+  { id: '9', name: 'Robert Taylor', grade: 'Grade 10', section: 'A', gender: 'Male', contact: '555-4812' },
+  { id: '10', name: 'Linda Anderson', grade: 'Grade 11', section: 'B', gender: 'Female', contact: '555-9753' },
+  { id: '11', name: 'Thomas Martinez', grade: 'Grade 9', section: 'C', gender: 'Male', contact: '555-8642' },
+  { id: '12', name: 'Patricia Lewis', grade: 'Grade 12', section: 'A', gender: 'Female', contact: '555-7531' },
 ];
 
 const ITEMS_PER_PAGE = 5;
@@ -52,6 +53,7 @@ const StudentsPage = () => {
     contact: ''
   });
   const { toast } = useToast();
+  const { gradeLevels } = useGradeLevels();
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -176,6 +178,8 @@ const StudentsPage = () => {
     setIsAddDialogOpen(true);
   };
 
+  const sortedGradeLevels = [...gradeLevels].sort((a, b) => a.sequence - b.sequence);
+
   return (
     <MainLayout>
       <PageHeader 
@@ -228,10 +232,11 @@ const StudentsPage = () => {
                     <SelectValue placeholder="Select grade" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="9">Grade 9</SelectItem>
-                    <SelectItem value="10">Grade 10</SelectItem>
-                    <SelectItem value="11">Grade 11</SelectItem>
-                    <SelectItem value="12">Grade 12</SelectItem>
+                    {sortedGradeLevels.map((grade) => (
+                      <SelectItem key={grade.id} value={grade.name}>
+                        {grade.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
