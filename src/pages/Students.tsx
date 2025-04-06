@@ -13,7 +13,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Search, Pencil } from 'lucide-react';
+import { PlusCircle, Search, Pencil, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import DataPagination from '@/components/common/DataPagination';
 
 const studentsData = [
@@ -33,12 +33,17 @@ const studentsData = [
 
 const ITEMS_PER_PAGE = 5;
 
+type SortDirection = 'asc' | 'desc' | null;
+type SortField = 'name' | 'grade' | 'section' | 'gender' | 'contact' | null;
+
 const StudentsPage = () => {
   const [students, setStudents] = useState(studentsData);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState<SortField>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [formData, setFormData] = useState({
     name: '',
     grade: '',
@@ -48,12 +53,46 @@ const StudentsPage = () => {
   });
   const { toast } = useToast();
 
-  const filteredStudents = students.filter(student => 
-    student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.grade.includes(searchTerm) ||
-    student.section.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortDirection(null);
+        setSortField(null);
+      } else {
+        setSortDirection('asc');
+      }
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
 
+  const sortAndFilterStudents = () => {
+    let result = students.filter(student => 
+      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.grade.includes(searchTerm) ||
+      student.section.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    
+    if (sortField && sortDirection) {
+      result = [...result].sort((a, b) => {
+        const aValue = a[sortField]?.toLowerCase() || '';
+        const bValue = b[sortField]?.toLowerCase() || '';
+        
+        if (sortDirection === 'asc') {
+          return aValue.localeCompare(bValue);
+        } else {
+          return bValue.localeCompare(aValue);
+        }
+      });
+    }
+    
+    return result;
+  };
+
+  const filteredStudents = sortAndFilterStudents();
   const totalPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE);
   const paginatedStudents = filteredStudents.slice(
     (currentPage - 1) * ITEMS_PER_PAGE, 
@@ -62,7 +101,17 @@ const StudentsPage = () => {
 
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, sortField, sortDirection]);
+
+  const renderSortIcon = (field: SortField) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="ml-2 h-4 w-4" />;
+    }
+    
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="ml-2 h-4 w-4" /> 
+      : <ArrowDown className="ml-2 h-4 w-4" />;
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -254,11 +303,51 @@ const StudentsPage = () => {
           <TableCaption>A list of all students</TableCaption>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Grade</TableHead>
-              <TableHead>Section</TableHead>
-              <TableHead>Gender</TableHead>
-              <TableHead>Contact</TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                onClick={() => handleSort('name')}
+              >
+                <div className="flex items-center">
+                  Name
+                  {renderSortIcon('name')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                onClick={() => handleSort('grade')}
+              >
+                <div className="flex items-center">
+                  Grade
+                  {renderSortIcon('grade')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                onClick={() => handleSort('section')}
+              >
+                <div className="flex items-center">
+                  Section
+                  {renderSortIcon('section')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                onClick={() => handleSort('gender')}
+              >
+                <div className="flex items-center">
+                  Gender
+                  {renderSortIcon('gender')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/30 transition-colors" 
+                onClick={() => handleSort('contact')}
+              >
+                <div className="flex items-center">
+                  Contact
+                  {renderSortIcon('contact')}
+                </div>
+              </TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
