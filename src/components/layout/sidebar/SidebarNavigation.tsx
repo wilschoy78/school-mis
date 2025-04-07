@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, Location } from 'react-router-dom';
 import { 
@@ -13,7 +14,8 @@ import {
   Shield,
   FileText,
   School,
-  Section
+  Section,
+  Globe
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth, UserRole, User } from '@/context/AuthContext';
@@ -110,6 +112,12 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
       path: '/settings/sections',
       icon: <Section className="w-4 h-4" />,
       roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.REGISTRAR],
+    },
+    {
+      name: 'API Configuration',
+      path: '/settings/api',
+      icon: <Globe className="w-4 h-4" />,
+      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
     },
     {
       name: 'User Management',
