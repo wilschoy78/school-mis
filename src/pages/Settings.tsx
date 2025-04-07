@@ -7,7 +7,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Cog, Bell, Shield, FileText, School, Users, PanelLeft, GraduationCap
+  Cog, Bell, Shield, FileText, School, Users, PanelLeft, GraduationCap, Globe
 } from 'lucide-react';
 
 export const SystemSettingsContext = createContext({
@@ -90,6 +90,12 @@ const SettingsPage = () => {
       description: "Manage class sections and their assignments",
       icon: <PanelLeft className="h-8 w-8 text-orange-600" />,
       path: "/settings/sections"
+    },
+    {
+      title: "API Configuration",
+      description: "Configure mock data vs real API connectivity",
+      icon: <Globe className="h-8 w-8 text-blue-600" />,
+      path: "/settings/api"
     },
     {
       title: "User Management",
