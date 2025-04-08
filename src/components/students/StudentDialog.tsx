@@ -8,8 +8,9 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import StudentForm, { StudentFormData } from './StudentForm';
 
+// Updated to match the type in SettingsGradeLevels.tsx
 type GradeLevel = {
-  id: string;
+  id: number;
   name: string;
   sequence: number;
 };

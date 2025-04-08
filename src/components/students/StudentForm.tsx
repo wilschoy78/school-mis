@@ -25,8 +25,9 @@ export type StudentFormData = {
   guardianContact: string;
 };
 
+// Updated to match the type in SettingsGradeLevels.tsx
 type GradeLevel = {
-  id: string;
+  id: number;
   name: string;
   sequence: number;
 };
