@@ -16,6 +16,7 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  roles?: UserRole[]; // Added multiple roles support
   avatar?: string;
   department?: string;
   position?: string;
@@ -98,6 +99,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         name: email.split('@')[0].replace(/\./g, ' ').replace(/(\b\w)/g, (char) => char.toUpperCase()),
         email: email,
         role: role,
+        roles: [role], // Initialize with primary role
         avatar: '',
         status: 'Active',
         joinDate: new Date(),
@@ -121,7 +123,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const checkPermission = (allowedRoles: UserRole[]): boolean => {
     if (!user) return false;
-    return allowedRoles.includes(user.role);
+    
+    // Check if the primary role is allowed
+    if (allowedRoles.includes(user.role)) return true;
+    
+    // Check if any of the user's secondary roles are allowed
+    if (user.roles && user.roles.some(role => allowedRoles.includes(role))) {
+      return true;
+    }
+    
+    return false;
   };
 
   const updateUserProfile = (userData: Partial<User>) => {

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,7 @@ import {
 } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Search, Pencil, Shield, User, Key } from 'lucide-react';
+import { PlusCircle, Search, Pencil, Shield, User, Key, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserRole } from '@/context/AuthContext';
@@ -28,6 +29,15 @@ import { useForm } from 'react-hook-form';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DataPagination from '@/components/common/DataPagination';
+import { Checkbox } from '@/components/ui/checkbox';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuCheckboxItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 
 const initialUsers = [
   {
@@ -35,6 +45,7 @@ const initialUsers = [
     name: 'John Smith',
     email: 'john.smith@school.edu',
     role: UserRole.ADMIN,
+    roles: [UserRole.ADMIN, UserRole.TEACHER],
     department: 'Administration',
     status: 'Active',
     lastLogin: new Date(2023, 7, 15, 10, 30),
@@ -45,6 +56,7 @@ const initialUsers = [
     name: 'Sarah Johnson',
     email: 'sarah.johnson@school.edu',
     role: UserRole.TEACHER,
+    roles: [UserRole.TEACHER],
     department: 'Science',
     status: 'Active',
     lastLogin: new Date(2023, 7, 14, 14, 45),
@@ -138,6 +150,7 @@ interface UserForm {
   name: string;
   email: string;
   role: UserRole;
+  roles: UserRole[];
   department: string;
   status: 'Active' | 'Inactive';
 }
@@ -149,12 +162,14 @@ const UsersPage = () => {
   const [users, setUsers] = useState(initialUsers);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedRoles, setSelectedRoles] = useState<UserRole[]>([]);
   
   const form = useForm<UserForm>({
     defaultValues: {
       name: '',
       email: '',
       role: UserRole.STUDENT,
+      roles: [UserRole.STUDENT],
       department: '',
       status: 'Active'
     }
@@ -190,9 +205,15 @@ const UsersPage = () => {
   }, [searchTerm, activeTab]);
 
   const handleSubmit = (data: UserForm) => {
+    const roles = selectedRoles.length > 0 ? selectedRoles : [data.role];
+    
     if (selectedUser) {
       const updatedUsers = users.map(user => 
-        user.id === selectedUser.id ? { ...selectedUser, ...data } : user
+        user.id === selectedUser.id ? { 
+          ...selectedUser, 
+          ...data,
+          roles
+        } : user
       );
       setUsers(updatedUsers);
       toast({
@@ -203,6 +224,7 @@ const UsersPage = () => {
       const newUser = {
         id: (users.length + 1).toString(),
         ...data,
+        roles,
         lastLogin: null,
         avatar: ''
       };
@@ -215,15 +237,18 @@ const UsersPage = () => {
     
     setIsAddDialogOpen(false);
     setSelectedUser(null);
+    setSelectedRoles([]);
     form.reset();
   };
 
   const handleEdit = (user: any) => {
     setSelectedUser(user);
+    setSelectedRoles(user.roles || [user.role]);
     form.reset({
       name: user.name,
       email: user.email,
       role: user.role,
+      roles: user.roles || [user.role],
       department: user.department,
       status: user.status as 'Active' | 'Inactive'
     });
@@ -235,11 +260,27 @@ const UsersPage = () => {
       name: '',
       email: '',
       role: UserRole.STUDENT,
+      roles: [UserRole.STUDENT],
       department: '',
       status: 'Active'
     });
+    setSelectedRoles([UserRole.STUDENT]);
     setSelectedUser(null);
     setIsAddDialogOpen(true);
+  };
+
+  const toggleRole = (role: UserRole) => {
+    setSelectedRoles(current => {
+      if (current.includes(role)) {
+        return current.filter(r => r !== role);
+      } else {
+        return [...current, role];
+      }
+    });
+  };
+
+  const removeRole = (role: UserRole) => {
+    setSelectedRoles(current => current.filter(r => r !== role));
   };
 
   const getInitials = (name: string) => {
@@ -265,6 +306,15 @@ const UsersPage = () => {
       <Badge className={styles[role]}>
         {role.replace('_', ' ')}
       </Badge>
+    );
+  };
+
+  const getRolesByUser = (user: any) => {
+    const roles = user.roles || [user.role];
+    return (
+      <div className="flex flex-wrap gap-1">
+        {roles.map((role: UserRole) => getRoleBadge(role))}
+      </div>
     );
   };
 
@@ -335,8 +385,17 @@ const UsersPage = () => {
                     name="role"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Role</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormLabel>Primary Role</FormLabel>
+                        <Select 
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            // Add to selectedRoles if not already included
+                            if (!selectedRoles.includes(value as UserRole)) {
+                              setSelectedRoles(prev => [...prev, value as UserRole]);
+                            }
+                          }} 
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select a role" />
@@ -355,6 +414,71 @@ const UsersPage = () => {
                       </FormItem>
                     )}
                   />
+
+                  <FormItem>
+                    <FormLabel>Assigned Roles</FormLabel>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {selectedRoles.map(role => (
+                        <Badge key={role} className="flex items-center gap-1">
+                          {role.replace('_', ' ')}
+                          <button 
+                            type="button" 
+                            onClick={() => removeRole(role)}
+                            className="ml-1 h-4 w-4 rounded-full bg-muted-foreground/20 flex items-center justify-center"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" type="button" size="sm">
+                          Add Role
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-56">
+                        <DropdownMenuLabel>Available Roles</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuCheckboxItem
+                          checked={selectedRoles.includes(UserRole.ADMIN)}
+                          onCheckedChange={() => toggleRole(UserRole.ADMIN)}
+                        >
+                          Administrator
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={selectedRoles.includes(UserRole.TEACHER)}
+                          onCheckedChange={() => toggleRole(UserRole.TEACHER)}
+                        >
+                          Teacher
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={selectedRoles.includes(UserRole.REGISTRAR)}
+                          onCheckedChange={() => toggleRole(UserRole.REGISTRAR)}
+                        >
+                          Registrar
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={selectedRoles.includes(UserRole.CASHIER)}
+                          onCheckedChange={() => toggleRole(UserRole.CASHIER)}
+                        >
+                          Cashier
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={selectedRoles.includes(UserRole.LIBRARIAN)}
+                          onCheckedChange={() => toggleRole(UserRole.LIBRARIAN)}
+                        >
+                          Librarian
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={selectedRoles.includes(UserRole.STUDENT)}
+                          onCheckedChange={() => toggleRole(UserRole.STUDENT)}
+                        >
+                          Student
+                        </DropdownMenuCheckboxItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </FormItem>
 
                   <FormField
                     control={form.control}
@@ -404,6 +528,7 @@ const UsersPage = () => {
                       onClick={() => {
                         setIsAddDialogOpen(false);
                         setSelectedUser(null);
+                        setSelectedRoles([]);
                         form.reset();
                       }}
                     >
@@ -434,7 +559,7 @@ const UsersPage = () => {
             users={paginatedUsers} 
             handleEdit={handleEdit} 
             getInitials={getInitials}
-            getRoleBadge={getRoleBadge}
+            getRolesByUser={getRolesByUser}
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
@@ -445,7 +570,7 @@ const UsersPage = () => {
             users={paginatedUsers} 
             handleEdit={handleEdit} 
             getInitials={getInitials}
-            getRoleBadge={getRoleBadge}
+            getRolesByUser={getRolesByUser}
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
@@ -456,7 +581,7 @@ const UsersPage = () => {
             users={paginatedUsers} 
             handleEdit={handleEdit} 
             getInitials={getInitials}
-            getRoleBadge={getRoleBadge}
+            getRolesByUser={getRolesByUser}
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
@@ -467,7 +592,7 @@ const UsersPage = () => {
             users={paginatedUsers} 
             handleEdit={handleEdit} 
             getInitials={getInitials}
-            getRoleBadge={getRoleBadge}
+            getRolesByUser={getRolesByUser}
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
@@ -478,7 +603,7 @@ const UsersPage = () => {
             users={paginatedUsers} 
             handleEdit={handleEdit} 
             getInitials={getInitials}
-            getRoleBadge={getRoleBadge}
+            getRolesByUser={getRolesByUser}
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
@@ -493,7 +618,7 @@ const UsersTable = ({
   users, 
   handleEdit, 
   getInitials, 
-  getRoleBadge,
+  getRolesByUser,
   currentPage,
   totalPages,
   onPageChange
@@ -506,7 +631,7 @@ const UsersTable = ({
           <TableHeader>
             <TableRow>
               <TableHead>User</TableHead>
-              <TableHead>Role</TableHead>
+              <TableHead>Roles</TableHead>
               <TableHead>Department</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Last Login</TableHead>
@@ -529,7 +654,7 @@ const UsersTable = ({
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>{getRoleBadge(user.role)}</TableCell>
+                  <TableCell>{getRolesByUser(user)}</TableCell>
                   <TableCell>{user.department}</TableCell>
                   <TableCell>
                     <Badge variant={user.status === 'Active' ? 'default' : 'secondary'}>
