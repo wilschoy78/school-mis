@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -103,6 +104,26 @@
   .dark input::placeholder, 
   .dark textarea::placeholder {
     @apply text-muted-foreground;
+  }
+  
+  /* Add these classes to ensure text is visible in dark mode for all components */
+  .dark td,
+  .dark th,
+  .dark p,
+  .dark h1,
+  .dark h2,
+  .dark h3,
+  .dark h4,
+  .dark h5,
+  .dark h6,
+  .dark label,
+  .dark li,
+  .dark span:not([class*="bg-"]) {
+    @apply text-foreground;
+  }
+  
+  .dark .bg-white {
+    @apply bg-background;
   }
 }
 
