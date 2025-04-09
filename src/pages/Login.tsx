@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -12,17 +11,7 @@ const Login = () => {
   const { systemName, logo, theme } = useSystemSettings();
   const { toast } = useToast();
   
-  // Set theme on login page
-  React.useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else if (theme === 'light') {
-      document.documentElement.classList.remove('dark');
-    } else if (theme === 'system') {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      document.documentElement.classList.toggle('dark', prefersDark);
-    }
-  }, [theme]);
+  // Use ThemeProvider to handle theme instead of inline theme setting
   
   // If already authenticated, redirect to dashboard
   if (isAuthenticated && !isLoading) {

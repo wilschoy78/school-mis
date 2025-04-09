@@ -18,19 +18,23 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Apply theme based on settings
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
       setIsDarkMode(true);
     } else if (theme === 'light') {
       document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
       setIsDarkMode(false);
     } else if (theme === 'system') {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       document.documentElement.classList.toggle('dark', prefersDark);
+      document.documentElement.classList.toggle('light', !prefersDark);
       setIsDarkMode(prefersDark);
       
       // Add listener for system preference changes
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
       const handleChange = (e: MediaQueryListEvent) => {
         document.documentElement.classList.toggle('dark', e.matches);
+        document.documentElement.classList.toggle('light', !e.matches);
         setIsDarkMode(e.matches);
       };
       

@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -93,6 +92,17 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  .dark input, 
+  .dark textarea,
+  .dark select {
+    @apply text-foreground;
+  }
+  
+  .dark input::placeholder, 
+  .dark textarea::placeholder {
+    @apply text-muted-foreground;
   }
 }
 
