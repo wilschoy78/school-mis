@@ -7,7 +7,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { 
   Pencil, ArrowUpDown, ArrowUp, ArrowDown, 
-  FileText, FileSpreadsheet, FilePdf 
+  FileText, FileSpreadsheet, FileDown 
 } from 'lucide-react';
 import DataPagination from '@/components/common/DataPagination';
 
@@ -123,7 +123,7 @@ const StudentTable: React.FC<StudentTableProps> = ({
             Excel
           </Button>
           <Button variant="outline" size="sm" onClick={generatePDF}>
-            <FilePdf className="mr-2 h-4 w-4" />
+            <FileDown className="mr-2 h-4 w-4" />
             PDF
           </Button>
         </div>
