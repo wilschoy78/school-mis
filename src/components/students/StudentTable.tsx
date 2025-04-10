@@ -5,7 +5,10 @@ import {
   TableHead, TableHeader, TableRow 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Pencil, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { 
+  Pencil, ArrowUpDown, ArrowUp, ArrowDown, 
+  FileText, FileSpreadsheet, FilePdf 
+} from 'lucide-react';
 import DataPagination from '@/components/common/DataPagination';
 
 type Student = {
@@ -60,8 +63,72 @@ const StudentTable: React.FC<StudentTableProps> = ({
       : <ArrowDown className="ml-2 h-4 w-4" />;
   };
 
+  const generateCSV = () => {
+    const headers = ['First Name', 'Last Name', 'Grade', 'Section', 'Gender', 'Contact'];
+    
+    // Create CSV content
+    let csvContent = headers.join(',') + '\n';
+    
+    students.forEach(student => {
+      const row = [
+        student.firstName,
+        student.lastName,
+        student.grade,
+        student.section,
+        student.gender,
+        student.contact
+      ].map(value => `"${value}"`).join(',');
+      
+      csvContent += row + '\n';
+    });
+    
+    // Create and download the CSV file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'students.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const generateExcel = () => {
+    // For demonstration, we're actually creating a CSV that Excel can open
+    // In a real app, you might use a library like exceljs or xlsx
+    generateCSV();
+  };
+
+  const generatePDF = () => {
+    // For demonstration purposes only
+    // In a real app, you would use a library like jspdf or pdfmake
+    console.log('Generating PDF with student data', students);
+    alert("PDF generation would require a PDF library. This is a placeholder for demonstration.");
+  };
+
   return (
     <>
+      <div className="flex justify-between items-center mb-4">
+        <div className="text-sm text-muted-foreground">
+          Total: {students.length} students
+        </div>
+        <div className="flex space-x-2">
+          <Button variant="outline" size="sm" onClick={generateCSV}>
+            <FileText className="mr-2 h-4 w-4" />
+            CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={generateExcel}>
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Excel
+          </Button>
+          <Button variant="outline" size="sm" onClick={generatePDF}>
+            <FilePdf className="mr-2 h-4 w-4" />
+            PDF
+          </Button>
+        </div>
+      </div>
+
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <Table>
           <TableCaption>A list of all students</TableCaption>
