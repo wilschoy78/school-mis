@@ -258,6 +258,7 @@ const UsersPage = () => {
           ...data,
           name,
           roles,
+          employeeId: data.employeeId || null,
         } : user
       );
       setUsers(updatedUsers);
@@ -273,6 +274,7 @@ const UsersPage = () => {
         roles,
         lastLogin: null,
         avatar: '',
+        employeeId: data.employeeId || null,
       };
       setUsers([...users, newUser]);
       toast({

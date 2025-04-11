@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export enum UserRole {
@@ -23,7 +22,7 @@ export interface User {
   phone?: string;
   status?: 'Active' | 'Inactive' | 'On Leave';
   joinDate?: Date;
-  employeeId?: string; // Added relationship to Employee
+  employeeId?: string; // Changed to optional with ?
 }
 
 interface AuthContextType {
