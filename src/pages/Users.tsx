@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Search, Pencil, Shield, User, Key, X } from 'lucide-react';
+import { PlusCircle, Search, Pencil, Shield, User, Key, X, FileText, FileSpreadsheet, FileDown } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserRole } from '@/context/AuthContext';
@@ -39,6 +39,20 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 
+// Mock employee data for demonstration
+const mockEmployees = [
+  { id: 'EMP-1001', name: 'John Smith', department: 'Administration', position: 'Principal' },
+  { id: 'EMP-1002', name: 'Sarah Johnson', department: 'Science', position: 'Department Head' },
+  { id: 'EMP-1003', name: 'Michael Brown', department: 'Administration', position: 'Registrar' },
+  { id: 'EMP-1004', name: 'Emily Davis', department: 'Library', position: 'Head Librarian' },
+  { id: 'EMP-1005', name: 'Robert Wilson', department: 'Mathematics', position: 'Senior Teacher' },
+  { id: 'EMP-1006', name: 'Lisa Anderson', department: 'Administration', position: 'Admin Assistant' },
+  { id: 'EMP-1007', name: 'Mark Johnson', department: 'Physical Education', position: 'PE Teacher' },
+  { id: 'EMP-1008', name: 'Susan Williams', department: 'Administration', position: 'Cashier' },
+  { id: 'EMP-1009', name: 'Kevin Harris', department: 'Administration', position: 'Assistant Registrar' },
+  { id: 'EMP-1010', name: 'Emma Garcia', department: 'English', position: 'English Teacher' }
+];
+
 const initialUsers = [
   {
     id: '1',
@@ -49,7 +63,8 @@ const initialUsers = [
     department: 'Administration',
     status: 'Active',
     lastLogin: new Date(2023, 7, 15, 10, 30),
-    avatar: ''
+    avatar: '',
+    employeeId: 'EMP-1001'
   },
   {
     id: '2',
@@ -60,7 +75,8 @@ const initialUsers = [
     department: 'Science',
     status: 'Active',
     lastLogin: new Date(2023, 7, 14, 14, 45),
-    avatar: ''
+    avatar: '',
+    employeeId: 'EMP-1002'
   },
   {
     id: '3',
@@ -70,7 +86,8 @@ const initialUsers = [
     department: 'Administration',
     status: 'Active',
     lastLogin: new Date(2023, 7, 15, 9, 15),
-    avatar: ''
+    avatar: '',
+    employeeId: 'EMP-1003'
   },
   {
     id: '4',
@@ -80,7 +97,8 @@ const initialUsers = [
     department: 'Library',
     status: 'Inactive',
     lastLogin: new Date(2023, 6, 30, 11, 20),
-    avatar: ''
+    avatar: '',
+    employeeId: 'EMP-1004'
   },
   {
     id: '5',
@@ -90,7 +108,8 @@ const initialUsers = [
     department: 'Mathematics',
     status: 'Active',
     lastLogin: new Date(2023, 7, 12, 15, 10),
-    avatar: ''
+    avatar: '',
+    employeeId: 'EMP-1005'
   },
   {
     id: '6',
@@ -100,7 +119,8 @@ const initialUsers = [
     department: 'Grade 10',
     status: 'Active',
     lastLogin: new Date(2023, 7, 14, 16, 30),
-    avatar: ''
+    avatar: '',
+    employeeId: null
   },
   {
     id: '7',
@@ -110,7 +130,8 @@ const initialUsers = [
     department: 'Physical Education',
     status: 'Active',
     lastLogin: new Date(2023, 7, 13, 10, 45),
-    avatar: ''
+    avatar: '',
+    employeeId: 'EMP-1007'
   },
   {
     id: '8',
@@ -120,7 +141,8 @@ const initialUsers = [
     department: 'Administration',
     status: 'Active',
     lastLogin: new Date(2023, 7, 14, 8, 15),
-    avatar: ''
+    avatar: '',
+    employeeId: 'EMP-1008'
   },
   {
     id: '9',
@@ -130,7 +152,8 @@ const initialUsers = [
     department: 'Administration',
     status: 'Active',
     lastLogin: new Date(2023, 7, 12, 14, 30),
-    avatar: ''
+    avatar: '',
+    employeeId: 'EMP-1009'
   },
   {
     id: '10',
@@ -140,7 +163,8 @@ const initialUsers = [
     department: 'Grade 11',
     status: 'Inactive',
     lastLogin: new Date(2023, 6, 25, 16, 10),
-    avatar: ''
+    avatar: '',
+    employeeId: null
   }
 ];
 
@@ -153,6 +177,7 @@ interface UserForm {
   roles: UserRole[];
   department: string;
   status: 'Active' | 'Inactive';
+  employeeId?: string;
 }
 
 const UsersPage = () => {
@@ -171,7 +196,8 @@ const UsersPage = () => {
       role: UserRole.STUDENT,
       roles: [UserRole.STUDENT],
       department: '',
-      status: 'Active'
+      status: 'Active',
+      employeeId: ''
     }
   });
   
@@ -207,12 +233,16 @@ const UsersPage = () => {
   const handleSubmit = (data: UserForm) => {
     const roles = selectedRoles.length > 0 ? selectedRoles : [data.role];
     
+    // Only assign employeeId if the user is not a student
+    const employeeId = !roles.includes(UserRole.STUDENT) ? data.employeeId : null;
+    
     if (selectedUser) {
       const updatedUsers = users.map(user => 
         user.id === selectedUser.id ? { 
           ...selectedUser, 
           ...data,
-          roles
+          roles,
+          employeeId
         } : user
       );
       setUsers(updatedUsers);
@@ -226,7 +256,8 @@ const UsersPage = () => {
         ...data,
         roles,
         lastLogin: null,
-        avatar: ''
+        avatar: '',
+        employeeId
       };
       setUsers([...users, newUser]);
       toast({
@@ -250,7 +281,8 @@ const UsersPage = () => {
       role: user.role,
       roles: user.roles || [user.role],
       department: user.department,
-      status: user.status as 'Active' | 'Inactive'
+      status: user.status as 'Active' | 'Inactive',
+      employeeId: user.employeeId || ''
     });
     setIsAddDialogOpen(true);
   };
@@ -262,7 +294,8 @@ const UsersPage = () => {
       role: UserRole.STUDENT,
       roles: [UserRole.STUDENT],
       department: '',
-      status: 'Active'
+      status: 'Active',
+      employeeId: ''
     });
     setSelectedRoles([UserRole.STUDENT]);
     setSelectedUser(null);
@@ -316,6 +349,48 @@ const UsersPage = () => {
         {roles.map((role: UserRole) => getRoleBadge(role))}
       </div>
     );
+  };
+
+  const generateCSV = () => {
+    const headers = ['Name', 'Email', 'Primary Role', 'Department', 'Status', 'Employee ID'];
+    
+    // Create CSV content
+    let csvContent = headers.join(',') + '\n';
+    
+    users.forEach(user => {
+      const row = [
+        user.name,
+        user.email,
+        user.role,
+        user.department,
+        user.status,
+        user.employeeId || 'N/A'
+      ].map(value => `"${value}"`).join(',');
+      
+      csvContent += row + '\n';
+    });
+    
+    // Create and download the CSV file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'users.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const generateExcel = () => {
+    // For demonstration, we're actually creating a CSV that Excel can open
+    generateCSV();
+  };
+
+  const generatePDF = () => {
+    // For demonstration purposes only
+    console.log('Generating PDF with user data', users);
+    alert("PDF generation would require a PDF library. This is a placeholder for demonstration.");
   };
 
   return (
@@ -494,6 +569,38 @@ const UsersPage = () => {
                     )}
                   />
 
+                  {/* Only show employee selection if not a student */}
+                  {!selectedRoles.includes(UserRole.STUDENT) && (
+                    <FormField
+                      control={form.control}
+                      name="employeeId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Employee</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Link to employee record" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="">None</SelectItem>
+                              {mockEmployees.map(employee => (
+                                <SelectItem key={employee.id} value={employee.id}>
+                                  {employee.name} - {employee.position}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
                   <FormField
                     control={form.control}
                     name="status"
@@ -543,14 +650,30 @@ const UsersPage = () => {
         </div>
 
         <div className="mb-6">
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-            <Input
-              placeholder="Search users..."
-              className="pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+          <div className="flex justify-between items-center">
+            <div className="relative w-full max-w-sm">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+              <Input
+                placeholder="Search users..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="flex space-x-2 ml-4">
+              <Button variant="outline" size="sm" onClick={generateCSV}>
+                <FileText className="mr-2 h-4 w-4" />
+                CSV
+              </Button>
+              <Button variant="outline" size="sm" onClick={generateExcel}>
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                Excel
+              </Button>
+              <Button variant="outline" size="sm" onClick={generatePDF}>
+                <FileDown className="mr-2 h-4 w-4" />
+                PDF
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -634,6 +757,7 @@ const UsersTable = ({
               <TableHead>Roles</TableHead>
               <TableHead>Department</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Employee ID</TableHead>
               <TableHead>Last Login</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -662,6 +786,15 @@ const UsersTable = ({
                     </Badge>
                   </TableCell>
                   <TableCell>
+                    {user.employeeId ? (
+                      <Badge variant="outline" className="font-mono">
+                        {user.employeeId}
+                      </Badge>
+                    ) : (
+                      <span className="text-sm text-gray-500">N/A</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
                     {user.lastLogin ? (
                       <span className="text-sm">
                         {new Date(user.lastLogin).toLocaleDateString()} at {new Date(user.lastLogin).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -687,7 +820,7 @@ const UsersTable = ({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-6">
+                <TableCell colSpan={7} className="text-center py-6">
                   No users found
                 </TableCell>
               </TableRow>
