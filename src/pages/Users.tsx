@@ -54,6 +54,7 @@ const mockEmployees = [
 const initialUsers = [
   {
     id: '1',
+    username: 'jsmith',
     name: 'John Smith',
     email: 'john.smith@school.edu',
     role: UserRole.ADMIN,
@@ -66,6 +67,7 @@ const initialUsers = [
   },
   {
     id: '2',
+    username: 'sjohnson',
     name: 'Sarah Johnson',
     email: 'sarah.johnson@school.edu',
     role: UserRole.TEACHER,
@@ -78,6 +80,7 @@ const initialUsers = [
   },
   {
     id: '3',
+    username: 'mbrown',
     name: 'Michael Brown',
     email: 'michael.brown@school.edu',
     role: UserRole.REGISTRAR,
@@ -89,6 +92,7 @@ const initialUsers = [
   },
   {
     id: '4',
+    username: 'edavis',
     name: 'Emily Davis',
     email: 'emily.davis@school.edu',
     role: UserRole.LIBRARIAN,
@@ -100,6 +104,7 @@ const initialUsers = [
   },
   {
     id: '5',
+    username: 'rwilson',
     name: 'Robert Wilson',
     email: 'robert.wilson@school.edu',
     role: UserRole.TEACHER,
@@ -111,6 +116,7 @@ const initialUsers = [
   },
   {
     id: '6',
+    username: 'landerson',
     name: 'Lisa Anderson',
     email: 'lisa.anderson@school.edu',
     role: UserRole.STUDENT,
@@ -122,6 +128,7 @@ const initialUsers = [
   },
   {
     id: '7',
+    username: 'mjohnson',
     name: 'Mark Johnson',
     email: 'mark.johnson@school.edu',
     role: UserRole.TEACHER,
@@ -133,6 +140,7 @@ const initialUsers = [
   },
   {
     id: '8',
+    username: 'swilliams',
     name: 'Susan Williams',
     email: 'susan.williams@school.edu',
     role: UserRole.CASHIER,
@@ -144,6 +152,7 @@ const initialUsers = [
   },
   {
     id: '9',
+    username: 'kharris',
     name: 'Kevin Harris',
     email: 'kevin.harris@school.edu',
     role: UserRole.REGISTRAR,
@@ -155,6 +164,7 @@ const initialUsers = [
   },
   {
     id: '10',
+    username: 'egarcia',
     name: 'Emma Garcia',
     email: 'emma.garcia@school.edu',
     role: UserRole.STUDENT,
@@ -169,7 +179,7 @@ const initialUsers = [
 const ITEMS_PER_PAGE = 5;
 
 interface UserForm {
-  name: string;
+  username: string;
   email: string;
   role: UserRole;
   roles: UserRole[];
@@ -189,7 +199,7 @@ const UsersPage = () => {
   
   const form = useForm<UserForm>({
     defaultValues: {
-      name: '',
+      username: '',
       email: '',
       role: UserRole.STUDENT,
       roles: [UserRole.STUDENT],
@@ -208,6 +218,7 @@ const UsersPage = () => {
     
     if (
       searchTerm &&
+      !user.username.toLowerCase().includes(searchTerm.toLowerCase()) &&
       !user.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
       !user.email.toLowerCase().includes(searchTerm.toLowerCase()) &&
       !user.department.toLowerCase().includes(searchTerm.toLowerCase())
@@ -231,36 +242,42 @@ const UsersPage = () => {
   const handleSubmit = (data: UserForm) => {
     const roles = selectedRoles.length > 0 ? selectedRoles : [data.role];
     
-    // Only assign employeeId if the user is not a student
-    const employeeId = !roles.includes(UserRole.STUDENT) ? data.employeeId : null;
+    // Keep existing name or set to employee name if linked to employee
+    let name = selectedUser ? selectedUser.name : '';
+    if (data.employeeId && data.employeeId !== 'none') {
+      const selectedEmployee = mockEmployees.find(emp => emp.id === data.employeeId);
+      if (selectedEmployee) {
+        name = selectedEmployee.name;
+      }
+    }
     
     if (selectedUser) {
       const updatedUsers = users.map(user => 
         user.id === selectedUser.id ? { 
           ...selectedUser, 
           ...data,
+          name,
           roles,
-          employeeId
         } : user
       );
       setUsers(updatedUsers);
       toast({
         title: "User Updated",
-        description: `${data.name}'s account has been updated.`
+        description: `${data.username}'s account has been updated.`
       });
     } else {
       const newUser = {
         id: (users.length + 1).toString(),
         ...data,
+        name,
         roles,
         lastLogin: null,
         avatar: '',
-        employeeId
       };
       setUsers([...users, newUser]);
       toast({
         title: "User Created",
-        description: `${data.name}'s account has been created.`
+        description: `${data.username}'s account has been created.`
       });
     }
     
@@ -274,7 +291,7 @@ const UsersPage = () => {
     setSelectedUser(user);
     setSelectedRoles(user.roles || [user.role]);
     form.reset({
-      name: user.name,
+      username: user.username,
       email: user.email,
       role: user.role,
       roles: user.roles || [user.role],
@@ -287,7 +304,7 @@ const UsersPage = () => {
 
   const handleOpenDialog = () => {
     form.reset({
-      name: '',
+      username: '',
       email: '',
       role: UserRole.STUDENT,
       roles: [UserRole.STUDENT],
@@ -334,7 +351,7 @@ const UsersPage = () => {
     };
     
     return (
-      <Badge className={styles[role]}>
+      <Badge key={role} className={styles[role]}>
         {role.replace('_', ' ')}
       </Badge>
     );
@@ -350,13 +367,14 @@ const UsersPage = () => {
   };
 
   const generateCSV = () => {
-    const headers = ['Name', 'Email', 'Primary Role', 'Department', 'Status', 'Employee ID'];
+    const headers = ['Username', 'Name', 'Email', 'Primary Role', 'Department', 'Status', 'Employee ID'];
     
     // Create CSV content
     let csvContent = headers.join(',') + '\n';
     
     users.forEach(user => {
       const row = [
+        user.username,
         user.name,
         user.email,
         user.role,
@@ -427,12 +445,12 @@ const UsersPage = () => {
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
                   <FormField
                     control={form.control}
-                    name="name"
+                    name="username"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Full Name</FormLabel>
+                        <FormLabel>Username</FormLabel>
                         <FormControl>
-                          <Input placeholder="John Smith" {...field} />
+                          <Input placeholder="jsmith" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -567,37 +585,35 @@ const UsersPage = () => {
                     )}
                   />
 
-                  {/* Only show employee selection if not a student */}
-                  {!selectedRoles.includes(UserRole.STUDENT) && (
-                    <FormField
-                      control={form.control}
-                      name="employeeId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Employee</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Link to employee record" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="none">None</SelectItem>
-                              {mockEmployees.map(employee => (
-                                <SelectItem key={employee.id} value={employee.id}>
-                                  {employee.name} - {employee.position}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
+                  {/* Employee selection is now optional for all user types */}
+                  <FormField
+                    control={form.control}
+                    name="employeeId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Employee (Optional)</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Link to employee record" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
+                            {mockEmployees.map(employee => (
+                              <SelectItem key={employee.id} value={employee.id}>
+                                {employee.name} - {employee.position}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <FormField
                     control={form.control}
@@ -772,6 +788,7 @@ const UsersTable = ({
                       </Avatar>
                       <div>
                         <p className="font-medium">{user.name}</p>
+                        <p className="text-sm text-gray-500">@{user.username}</p>
                         <p className="text-sm text-gray-500">{user.email}</p>
                       </div>
                     </div>
