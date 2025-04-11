@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -39,7 +38,6 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 
-// Mock employee data for demonstration
 const mockEmployees = [
   { id: 'EMP-1001', name: 'John Smith', department: 'Administration', position: 'Principal' },
   { id: 'EMP-1002', name: 'Sarah Johnson', department: 'Science', position: 'Department Head' },
@@ -587,7 +585,7 @@ const UsersPage = () => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">None</SelectItem>
+                              <SelectItem value="none">None</SelectItem>
                               {mockEmployees.map(employee => (
                                 <SelectItem key={employee.id} value={employee.id}>
                                   {employee.name} - {employee.position}
