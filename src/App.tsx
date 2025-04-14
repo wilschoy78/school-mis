@@ -8,6 +8,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { SystemSettingsProvider } from "./pages/Settings";
 import { GradeLevelsProvider } from "./pages/settings/SettingsGradeLevels";
 import { ApiProvider } from "./context/ApiContext";
+import { EventProvider } from "./context/EventContext";
 import ThemeProvider from "./components/ThemeProvider";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -42,33 +43,35 @@ const App = () => {
             <ThemeProvider>
               <GradeLevelsProvider>
                 <AuthProvider>
-                  <Toaster />
-                  <Sonner />
-                  <BrowserRouter>
-                    <Routes>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/students" element={<Students />} />
-                      <Route path="/enrollment" element={<Enrollment />} />
-                      <Route path="/accounts" element={<Accounts />} />
-                      <Route path="/employees" element={<Employees />} />
-                      <Route path="/library" element={<Library />} />
-                      <Route path="/settings" element={<Settings />} />
-                      <Route path="/settings/school" element={<SettingsSchool />} />
-                      <Route path="/settings/theme" element={<SettingsTheme />} />
-                      <Route path="/settings/notifications" element={<SettingsNotifications />} />
-                      <Route path="/settings/security" element={<SettingsSecurity />} />
-                      <Route path="/settings/documents" element={<SettingsDocuments />} />
-                      <Route path="/settings/sections" element={<SettingsSections />} />
-                      <Route path="/settings/grade-levels" element={<SettingsGradeLevels />} />
-                      <Route path="/settings/api" element={<SettingsApi />} />
-                      <Route path="/settings/users" element={<Navigate to="/users" replace />} />
-                      <Route path="/users" element={<Users />} />
-                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </BrowserRouter>
+                  <EventProvider>
+                    <Toaster />
+                    <Sonner />
+                    <BrowserRouter>
+                      <Routes>
+                        <Route path="/" element={<Index />} />
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/students" element={<Students />} />
+                        <Route path="/enrollment" element={<Enrollment />} />
+                        <Route path="/accounts" element={<Accounts />} />
+                        <Route path="/employees" element={<Employees />} />
+                        <Route path="/library" element={<Library />} />
+                        <Route path="/settings" element={<Settings />} />
+                        <Route path="/settings/school" element={<SettingsSchool />} />
+                        <Route path="/settings/theme" element={<SettingsTheme />} />
+                        <Route path="/settings/notifications" element={<SettingsNotifications />} />
+                        <Route path="/settings/security" element={<SettingsSecurity />} />
+                        <Route path="/settings/documents" element={<SettingsDocuments />} />
+                        <Route path="/settings/sections" element={<SettingsSections />} />
+                        <Route path="/settings/grade-levels" element={<SettingsGradeLevels />} />
+                        <Route path="/settings/api" element={<SettingsApi />} />
+                        <Route path="/settings/users" element={<Navigate to="/users" replace />} />
+                        <Route path="/users" element={<Users />} />
+                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </BrowserRouter>
+                  </EventProvider>
                 </AuthProvider>
               </GradeLevelsProvider>
             </ThemeProvider>
