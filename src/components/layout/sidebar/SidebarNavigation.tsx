@@ -198,7 +198,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
           
           {/* Settings submenu */}
           {!collapsed && settingsOpen && (
-            <ul className="mt-1 ml-6 space-y-1 border-l border-sidebar-border pl-2">
+            <ul className="mt-1 ml-6 space-y-1 border-l border-sidebar-border pl-4">
               {settingsSubItems.map((subItem) => {
                 const isActive = location.pathname === subItem.path;
                 return (
