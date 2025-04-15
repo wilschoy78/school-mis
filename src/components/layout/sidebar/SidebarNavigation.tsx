@@ -107,7 +107,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
       roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.REGISTRAR],
     },
     {
-      name: 'User Management',
+      name: 'Users',
       path: '/users',
       icon: <UserCog className="w-4 h-4" />,
       roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
