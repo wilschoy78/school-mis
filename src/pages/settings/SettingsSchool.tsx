@@ -20,12 +20,12 @@ import { Link } from 'react-router-dom';
 const SettingsSchool = () => {
   const { systemName, updateSystemName, logo, updateLogo, theme } = useSystemSettings();
   const [schoolSettings, setSchoolSettings] = useState({
-    name: 'Brightstar International School',
-    shortName: 'Brightstar',
-    email: 'info@brightstar.edu',
+    name: 'Default International School',
+    shortName: 'Default',
+    email: 'info@default.edu',
     phone: '555-123-4567',
     address: '123 Education Way, Knowledge City, 12345',
-    website: 'www.brightstar.edu',
+    website: 'www.default.edu',
     logo: logo,
     systemName: systemName,
     theme: theme,
@@ -139,7 +139,7 @@ const SettingsSchool = () => {
                 name="systemName"
                 value={schoolSettings.systemName} 
                 onChange={handleSchoolSettingsChange} 
-                placeholder="e.g., Alicia MIS"
+                placeholder="e.g., School MIS"
               />
               <p className="text-xs text-muted-foreground">This name appears in the sidebar and throughout the system</p>
             </div>
