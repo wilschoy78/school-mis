@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
 import { 
@@ -14,11 +13,12 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { BookOpen, Building, Mail, Phone, Globe, MapPin, CalendarIcon, Clock, Wallet, Palette, Image, Upload } from 'lucide-react';
+import { BookOpen, Building, Mail, Phone, Globe, MapPin, CalendarIcon, Clock, Wallet, Palette, Image, Upload, ArrowRight } from 'lucide-react';
 import { useSystemSettings } from '../Settings';
+import { Link } from 'react-router-dom';
 
 const SettingsSchool = () => {
-  const { systemName, updateSystemName, logo, updateLogo } = useSystemSettings();
+  const { systemName, updateSystemName, logo, updateLogo, theme } = useSystemSettings();
   const [schoolSettings, setSchoolSettings] = useState({
     name: 'Brightstar International School',
     shortName: 'Brightstar',
@@ -28,7 +28,7 @@ const SettingsSchool = () => {
     website: 'www.brightstar.edu',
     logo: logo,
     systemName: systemName,
-    theme: 'light',
+    theme: theme,
     academicYear: '2023-2024',
     timezone: 'UTC+8',
     currency: 'PHP'
@@ -145,16 +145,18 @@ const SettingsSchool = () => {
             </div>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <Label htmlFor="email">Email Address</Label>
+                <Palette className="h-4 w-4 text-muted-foreground" />
+                <Label>Theme Settings</Label>
               </div>
-              <Input 
-                id="email" 
-                name="email"
-                type="email"
-                value={schoolSettings.email} 
-                onChange={handleSchoolSettingsChange} 
-              />
+              <div className="h-10 flex items-center">
+                <Link 
+                  to="/settings/theme"
+                  className="text-primary hover:underline flex items-center"
+                >
+                  Customize application theme and appearance
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </div>
             </div>
           </div>
           

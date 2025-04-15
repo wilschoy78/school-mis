@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export enum UserRole {
@@ -16,12 +15,14 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  roles?: UserRole[]; // Added multiple roles support
   avatar?: string;
   department?: string;
   position?: string;
   phone?: string;
   status?: 'Active' | 'Inactive' | 'On Leave';
   joinDate?: Date;
+  employeeId?: string; // Changed to optional with ?
 }
 
 interface AuthContextType {
@@ -93,14 +94,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         role = UserRole.LIBRARIAN;
       }
       
+      // Mock employee ID for staff members
+      let employeeId = null;
+      if (role !== UserRole.STUDENT) {
+        // Generate a mock employee ID for staff members
+        employeeId = `EMP-${Math.floor(1000 + Math.random() * 9000)}`;
+      }
+      
       const mockUser: User = {
         id: '1',
         name: email.split('@')[0].replace(/\./g, ' ').replace(/(\b\w)/g, (char) => char.toUpperCase()),
         email: email,
         role: role,
+        roles: [role], // Initialize with primary role
         avatar: '',
         status: 'Active',
         joinDate: new Date(),
+        employeeId: employeeId, // Add employee ID for staff
       };
       
       // Store user in localStorage
@@ -121,7 +131,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const checkPermission = (allowedRoles: UserRole[]): boolean => {
     if (!user) return false;
-    return allowedRoles.includes(user.role);
+    
+    // Check if the primary role is allowed
+    if (allowedRoles.includes(user.role)) return true;
+    
+    // Check if any of the user's secondary roles are allowed
+    if (user.roles && user.roles.some(role => allowedRoles.includes(role))) {
+      return true;
+    }
+    
+    return false;
   };
 
   const updateUserProfile = (userData: Partial<User>) => {

@@ -94,6 +94,37 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+  
+  .dark input, 
+  .dark textarea,
+  .dark select {
+    @apply text-foreground;
+  }
+  
+  .dark input::placeholder, 
+  .dark textarea::placeholder {
+    @apply text-muted-foreground;
+  }
+  
+  /* Add these classes to ensure text is visible in dark mode for all components */
+  .dark td,
+  .dark th,
+  .dark p,
+  .dark h1,
+  .dark h2,
+  .dark h3,
+  .dark h4,
+  .dark h5,
+  .dark h6,
+  .dark label,
+  .dark li,
+  .dark span:not([class*="bg-"]) {
+    @apply text-foreground;
+  }
+  
+  .dark .bg-white {
+    @apply bg-background;
+  }
 }
 
 @layer utilities {

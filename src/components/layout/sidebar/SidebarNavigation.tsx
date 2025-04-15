@@ -8,13 +8,14 @@ import {
   DollarSign, 
   Settings, 
   BookOpen,
-  Library as LibraryIcon,
+  LibraryIcon,
   UserCog,
   Bell,
   Shield,
   FileText,
   School,
-  Section
+  Section,
+  Globe
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth, UserRole, User } from '@/context/AuthContext';
@@ -83,6 +84,12 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
       roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
     },
     {
+      name: 'Grade Levels',
+      path: '/settings/grade-levels',
+      icon: <GraduationCap className="w-4 h-4" />,
+      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.REGISTRAR],
+    },
+    {
       name: 'Notifications',
       path: '/settings/notifications',
       icon: <Bell className="w-4 h-4" />,
@@ -105,6 +112,12 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
       path: '/settings/sections',
       icon: <Section className="w-4 h-4" />,
       roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.REGISTRAR],
+    },
+    {
+      name: 'API Configuration',
+      path: '/settings/api',
+      icon: <Globe className="w-4 h-4" />,
+      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
     },
     {
       name: 'Users',
