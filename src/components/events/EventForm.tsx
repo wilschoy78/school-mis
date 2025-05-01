@@ -52,6 +52,9 @@ interface EventFormProps {
   initialDate?: Date;
   onSuccess?: () => void;
   onCancel?: () => void;
+  // For backward compatibility with UpcomingEvents component
+  onSubmit?: (data: Omit<Event, 'id'>) => void;
+  defaultValues?: Event;
 }
 
 export const EventForm: React.FC<EventFormProps> = ({
@@ -59,32 +62,53 @@ export const EventForm: React.FC<EventFormProps> = ({
   initialDate,
   onSuccess,
   onCancel,
+  onSubmit, // For backward compatibility
+  defaultValues, // For backward compatibility
 }) => {
   const { addEvent, updateEvent } = useEvents();
+  
+  // Use event first, then fallback to defaultValues (for backward compatibility)
+  const eventToUse = event || defaultValues;
   
   const form = useForm<EventFormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      title: event?.title || '',
-      date: event?.date || initialDate || new Date(),
-      time: event?.time || '',
-      description: event?.description || '',
-      type: event?.type || 'meeting',
-      allDay: event?.allDay || false,
+      title: eventToUse?.title || '',
+      date: eventToUse?.date || initialDate || new Date(),
+      time: eventToUse?.time || '',
+      description: eventToUse?.description || '',
+      type: eventToUse?.type || 'meeting',
+      allDay: eventToUse?.allDay || false,
     },
   });
 
   const watchAllDay = form.watch('allDay');
 
   const handleSubmit = (data: EventFormValues) => {
-    if (event) {
-      updateEvent(event.id, data);
+    // Ensure required fields are present before passing to context functions
+    const eventData = {
+      title: data.title,
+      date: data.date,
+      time: data.time || '',
+      description: data.description || '',
+      type: data.type,
+      allDay: data.allDay
+    };
+
+    if (onSubmit) {
+      // For backward compatibility with UpcomingEvents component
+      onSubmit(eventData);
     } else {
-      addEvent(data);
-    }
-    
-    if (onSuccess) {
-      onSuccess();
+      // Use the context functions
+      if (eventToUse) {
+        updateEvent(eventToUse.id, eventData);
+      } else {
+        addEvent(eventData);
+      }
+      
+      if (onSuccess) {
+        onSuccess();
+      }
     }
   };
 
