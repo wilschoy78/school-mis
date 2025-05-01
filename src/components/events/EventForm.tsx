@@ -70,11 +70,16 @@ export const EventForm: React.FC<EventFormProps> = ({
   // Use event first, then fallback to defaultValues (for backward compatibility)
   const eventToUse = event || defaultValues;
   
+  // Ensure any date coming from props is properly converted to a Date object
+  const formattedDate = eventToUse?.date 
+    ? new Date(eventToUse.date) 
+    : initialDate || new Date();
+  
   const form = useForm<EventFormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       title: eventToUse?.title || '',
-      date: eventToUse?.date || initialDate || new Date(),
+      date: formattedDate,
       time: eventToUse?.time || '',
       description: eventToUse?.description || '',
       type: eventToUse?.type || 'meeting',
@@ -163,7 +168,12 @@ export const EventForm: React.FC<EventFormProps> = ({
                   <Calendar
                     mode="single"
                     selected={field.value}
-                    onSelect={field.onChange}
+                    onSelect={(date) => {
+                      // Ensure we properly set the date value when selected
+                      if (date) {
+                        field.onChange(date);
+                      }
+                    }}
                     initialFocus
                     className="p-3 pointer-events-auto"
                   />
