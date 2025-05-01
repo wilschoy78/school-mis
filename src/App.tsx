@@ -18,6 +18,7 @@ import Enrollment from "./pages/Enrollment";
 import Accounts from "./pages/Accounts";
 import Employees from "./pages/Employees";
 import Library from "./pages/Library";
+import Events from "./pages/Events"; // Import the Events page
 import Settings from "./pages/Settings";
 import SettingsSchool from "./pages/settings/SettingsSchool";
 import SettingsTheme from "./pages/settings/SettingsTheme";
@@ -56,6 +57,7 @@ const App = () => {
                         <Route path="/accounts" element={<Accounts />} />
                         <Route path="/employees" element={<Employees />} />
                         <Route path="/library" element={<Library />} />
+                        <Route path="/events" element={<Events />} /> {/* Add the Events route */}
                         <Route path="/settings" element={<Settings />} />
                         <Route path="/settings/school" element={<SettingsSchool />} />
                         <Route path="/settings/theme" element={<SettingsTheme />} />
