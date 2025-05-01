@@ -115,6 +115,11 @@ export const EventForm: React.FC<EventFormProps> = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        {/* Form title */}
+        <h2 className="text-lg font-semibold">
+          {eventToUse ? 'Edit Event' : 'Add New Event'}
+        </h2>
+        
         <FormField
           control={form.control}
           name="title"

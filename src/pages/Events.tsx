@@ -1,103 +1,244 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
-import { Calendar } from '@/components/ui/calendar';
-import { Card } from '@/components/ui/card';
-import { format } from 'date-fns';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, addDays, subDays, addWeeks, subWeeks, isSameDay, parseISO, isToday } from 'date-fns';
 import { useEvents } from '@/context/EventContext';
-import { Badge } from '@/components/ui/badge';
+import { Event } from '@/types/event';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { EventForm } from '@/components/events/EventForm';
 import { Button } from '@/components/ui/button';
-import { CalendarPlus, Filter } from 'lucide-react';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { Event } from '@/types/event';
-import { AlertDialog, AlertDialogContent, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { 
+  ArrowLeft, 
+  ArrowRight, 
+  CalendarPlus, 
+  ChevronDown, 
+  Search,
+  Settings, 
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { CalendarHeader } from '@/components/events/CalendarHeader';
+import { EventModal } from '@/components/events/EventModal';
+import { CalendarSidebar } from '@/components/events/CalendarSidebar';
+import { Input } from '@/components/ui/input';
+import { CalendarEvent } from '@/components/events/CalendarEvent';
 
 const Events = () => {
   const { events } = useEvents();
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
-  const [filterType, setFilterType] = useState<string | undefined>(undefined);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [currentWeek, setCurrentWeek] = useState<Date[]>([]);
+  const [view, setView] = useState<'day' | 'week' | 'month'>('week');
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isViewEventOpen, setIsViewEventOpen] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
 
-  // Get event dates for highlighting on the calendar
-  const eventDates = events.map(event => event.date);
-  
-  // Filter events based on selected date only
-  const filteredEvents = events.filter(event => {
-    const isSameDate = selectedDate 
-      ? event.date.toDateString() === selectedDate.toDateString()
-      : true;
-      
-    const matchesType = filterType 
-      ? event.type === filterType 
-      : true;
-      
-    return isSameDate && matchesType;
-  });
+  // Initialize the week days
+  useEffect(() => {
+    const daysInWeek = getWeekDays(selectedDate);
+    setCurrentWeek(daysInWeek);
+  }, [selectedDate]);
 
-  // Get unique event types for filter dropdown
-  const eventTypes = Array.from(new Set(events.map(event => event.type)));
-
-  // Function to handle day click on calendar
-  const handleDayClick = (date: Date | undefined) => {
-    setSelectedDate(date);
+  // Get array of days for the week containing the date
+  const getWeekDays = (date: Date) => {
+    const start = startOfWeek(date, { weekStartsOn: 1 }); // Start week on Monday
+    const end = endOfWeek(date, { weekStartsOn: 1 });
+    return eachDayOfInterval({ start, end });
   };
 
-  // Function to handle event click
+  // Navigate to previous week
+  const prevWeek = () => {
+    const newDate = subWeeks(selectedDate, 1);
+    setSelectedDate(newDate);
+  };
+
+  // Navigate to next week
+  const nextWeek = () => {
+    const newDate = addWeeks(selectedDate, 1);
+    setSelectedDate(newDate);
+  };
+
+  // Go to today
+  const goToToday = () => {
+    setSelectedDate(new Date());
+  };
+
+  // Get events for a specific day
+  const getEventsForDay = (date: Date) => {
+    return events.filter(event => 
+      isSameDay(new Date(event.date), date)
+    );
+  };
+
+  // Handle event click
   const handleEventClick = (event: Event) => {
     setSelectedEvent(event);
     setIsViewEventOpen(true);
   };
 
-  // Check if event is in the past
-  const isEventPast = (event: Event) => {
-    const now = new Date();
-    const eventDate = new Date(event.date);
+  // Check if an event overlaps with any others on the same day
+  const getEventPosition = (event: Event, dayEvents: Event[]) => {
+    if (event.allDay) return 0;
     
-    if (eventDate < now) {
-      // If it's an all-day event, check if the day has passed
-      if (event.allDay) {
-        return eventDate.setHours(23, 59, 59, 999) < now.getTime();
-      }
-      
-      // If it has a specific time, check if that time has passed
-      if (event.time) {
-        const [hours, minutes] = event.time.split(':').map(Number);
-        eventDate.setHours(hours, minutes);
-        return eventDate < now;
-      }
-      
-      return true;
-    }
+    // Sort events by start time
+    const sortedEvents = [...dayEvents]
+      .filter(e => !e.allDay)
+      .sort((a, b) => {
+        const timeA = a.time ? new Date(`1970-01-01T${a.time}`).getTime() : 0;
+        const timeB = b.time ? new Date(`1970-01-01T${b.time}`).getTime() : 0;
+        return timeA - timeB;
+      });
     
-    return false;
+    return sortedEvents.findIndex(e => e.id === event.id) * 5;
   };
+
+  // Format hour labels for the time grid
+  const hourLabels = Array.from({ length: 12 }, (_, i) => {
+    const hour = i + 8; // Starting from 8 AM
+    return `${hour % 12 === 0 ? 12 : hour % 12} ${hour >= 12 ? 'PM' : 'AM'}`;
+  });
 
   return (
     <MainLayout>
-      <div className="py-4">
-        <div className="flex justify-between items-center mb-4">
-          <PageHeader 
-            title="Events Calendar" 
-            description="View and manage school events" 
+      <div className="flex h-[calc(100vh-4rem)]">
+        {/* Calendar Sidebar */}
+        {showSidebar && (
+          <CalendarSidebar 
+            selectedDate={selectedDate}
+            onDateSelect={(date) => setSelectedDate(date)}
           />
+        )}
+
+        {/* Main Calendar Area */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Calendar Header */}
+          <CalendarHeader 
+            selectedDate={selectedDate}
+            view={view}
+            onViewChange={setView}
+            onNext={nextWeek}
+            onPrev={prevWeek}
+            onToday={goToToday}
+            toggleSidebar={() => setShowSidebar(!showSidebar)}
+          />
+
+          {/* Week View */}
+          <div className="flex-1 overflow-auto">
+            <div className="relative min-h-full">
+              {/* Day headers */}
+              <div className="sticky top-0 z-10 flex border-b bg-background">
+                {/* Time gutter */}
+                <div className="w-16 flex-shrink-0"></div>
+                
+                {/* Day columns */}
+                {currentWeek.map((day) => (
+                  <div 
+                    key={day.toISOString()} 
+                    className={cn(
+                      "flex-1 text-center py-2 border-l font-medium",
+                      isToday(day) && "bg-blue-50 dark:bg-blue-900/20"
+                    )}
+                  >
+                    <div className={cn(
+                      "text-xs uppercase", 
+                      isToday(day) && "text-blue-600 dark:text-blue-400"
+                    )}>
+                      {format(day, 'EEE')}
+                    </div>
+                    <div className={cn(
+                      "w-8 h-8 mx-auto rounded-full flex items-center justify-center mt-1",
+                      isToday(day) && "bg-blue-600 text-white"
+                    )}>
+                      {format(day, 'd')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Time grid */}
+              <div className="flex flex-1 min-h-[800px]">
+                {/* Time labels */}
+                <div className="w-16 flex-shrink-0 border-r">
+                  {hourLabels.map((hour, index) => (
+                    <div key={index} className="h-20 border-t relative">
+                      <span className="text-xs text-muted-foreground absolute -top-2.5 left-2">
+                        {hour}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Day columns with events */}
+                {currentWeek.map((day) => {
+                  const dayEvents = getEventsForDay(day);
+                  return (
+                    <div 
+                      key={day.toISOString()} 
+                      className={cn(
+                        "flex-1 border-l relative",
+                        isToday(day) && "bg-blue-50/50 dark:bg-blue-900/10"
+                      )}
+                    >
+                      {/* Hour cells */}
+                      {hourLabels.map((_, index) => (
+                        <div 
+                          key={index} 
+                          className="h-20 border-t"
+                        ></div>
+                      ))}
+                      
+                      {/* All-day events at the top */}
+                      <div className="absolute top-0 left-0 right-0 flex flex-col gap-1 p-1">
+                        {dayEvents
+                          .filter(event => event.allDay)
+                          .map(event => (
+                            <CalendarEvent 
+                              key={event.id}
+                              event={event}
+                              onClick={() => handleEventClick(event)}
+                              position="allDay"
+                            />
+                          ))}
+                      </div>
+                      
+                      {/* Timed events */}
+                      {dayEvents
+                        .filter(event => !event.allDay && event.time)
+                        .map(event => {
+                          // Convert time to hours to position the event
+                          const timeString = event.time || '00:00';
+                          const [hours, minutes] = timeString.split(':').map(Number);
+                          // Position from top based on time (8AM - 8PM time range)
+                          const topPosition = ((hours - 8) + minutes / 60) * 80; // 80px per hour
+                          const leftOffset = getEventPosition(event, dayEvents);
+                          
+                          return (
+                            <CalendarEvent
+                              key={event.id}
+                              event={event}
+                              onClick={() => handleEventClick(event)}
+                              position={{
+                                top: `${topPosition}px`,
+                                left: `${leftOffset}px`,
+                              }}
+                            />
+                          );
+                        })}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Add Event Button (Floating) */}
           <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <CalendarPlus className="mr-2 h-4 w-4" /> Add Event
-              </Button>
-            </DialogTrigger>
+            <Button 
+              onClick={() => setIsAddEventOpen(true)}
+              className="absolute bottom-6 right-6 rounded-full w-14 h-14 shadow-lg"
+              size="icon"
+            >
+              <CalendarPlus />
+            </Button>
             <DialogContent className="sm:max-w-[550px]">
               <EventForm 
                 onSuccess={() => setIsAddEventOpen(false)}
@@ -106,164 +247,16 @@ const Events = () => {
             </DialogContent>
           </Dialog>
         </div>
-
-        <div className="grid grid-cols-1 gap-6">
-          <div className="flex gap-4 items-center mb-2">
-            <Filter className="h-4 w-4" />
-            <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Filter by event type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={undefined}>All Events</SelectItem>
-                {eventTypes.map((type) => (
-                  <SelectItem key={type} value={type}>{type}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <Card className="p-6">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={handleDayClick}
-              month={selectedMonth}
-              onMonthChange={setSelectedMonth}
-              className="w-full rounded-md pointer-events-auto"
-              modifiers={{
-                highlighted: (date) => 
-                  eventDates.some(eventDate => 
-                    eventDate.toDateString() === date.toDateString()
-                  ),
-                hasEvents: (date) => 
-                  events.filter(event => event.date.toDateString() === date.toDateString()).length > 0
-              }}
-              modifiersStyles={{
-                highlighted: { 
-                  fontWeight: 'bold', 
-                  backgroundColor: 'var(--school-100)',
-                  color: 'var(--school-700)'
-                },
-                hasEvents: {
-                  position: 'relative'
-                }
-              }}
-              footer={
-                selectedDate && filteredEvents.length > 0 ? (
-                  <div className="mt-4 p-2 border rounded-md bg-muted/50">
-                    <h3 className="text-sm font-medium mb-2">
-                      Events on {format(selectedDate, 'MMMM d, yyyy')}:
-                    </h3>
-                    <div className="space-y-1">
-                      {filteredEvents.map((event) => (
-                        <EventPreview 
-                          key={event.id} 
-                          event={event} 
-                          onClick={() => handleEventClick(event)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ) : selectedDate ? (
-                  <div className="mt-4 p-2 text-center text-sm text-muted-foreground">
-                    No events on {format(selectedDate, 'MMMM d, yyyy')}
-                  </div>
-                ) : null
-              }
-            />
-          </Card>
-        </div>
       </div>
       
-      {/* Event view dialog */}
-      <Dialog open={isViewEventOpen && !!selectedEvent} onOpenChange={setIsViewEventOpen}>
-        <DialogContent className="sm:max-w-[550px]">
-          {selectedEvent && (
-            <div className="space-y-4">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h2 className="text-xl font-semibold">{selectedEvent.title}</h2>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge>
-                      {selectedEvent.type}
-                    </Badge>
-                    {selectedEvent.allDay && <Badge variant="outline">All Day</Badge>}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="py-2">
-                <p className="text-sm text-muted-foreground">
-                  {format(selectedEvent.date, 'MMMM d, yyyy')}
-                  {!selectedEvent.allDay && selectedEvent.time && <span> • {selectedEvent.time}</span>}
-                </p>
-                
-                {selectedEvent.description && (
-                  <p className="mt-4">{selectedEvent.description}</p>
-                )}
-              </div>
-              
-              <div className="flex justify-end gap-2 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsViewEventOpen(false)}
-                >
-                  Close
-                </Button>
-                
-                {!isEventPast(selectedEvent) && (
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button>Edit Event</Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[550px]">
-                      <EventForm 
-                        event={selectedEvent}
-                        onSuccess={() => {
-                          setIsViewEventOpen(false);
-                        }}
-                      />
-                    </DialogContent>
-                  </Dialog>
-                )}
-                
-                {isEventPast(selectedEvent) && (
-                  <Button disabled variant="outline">
-                    Event Completed
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Event view/edit modal */}
+      <EventModal 
+        event={selectedEvent} 
+        isOpen={isViewEventOpen} 
+        onClose={() => setIsViewEventOpen(false)}
+        onEventUpdated={() => setIsViewEventOpen(false)}
+      />
     </MainLayout>
-  );
-};
-
-// Event Preview component for displaying events in the calendar footer
-const EventPreview = ({ event, onClick }: { event: Event, onClick: () => void }) => {
-  const eventTypeColors: Record<string, string> = {
-    meeting: 'bg-blue-100 text-blue-800 border-blue-200',
-    sports: 'bg-green-100 text-green-800 border-green-200',
-    academic: 'bg-amber-100 text-amber-800 border-amber-200',
-    holiday: 'bg-purple-100 text-purple-800 border-purple-200',
-    other: 'bg-gray-100 text-gray-800 border-gray-200'
-  };
-
-  return (
-    <div 
-      className={`px-2 py-1 rounded border cursor-pointer transition-colors hover:opacity-80 ${eventTypeColors[event.type] || eventTypeColors.other}`}
-      onClick={onClick}
-    >
-      <div className="flex justify-between">
-        <span className="font-medium truncate">{event.title}</span>
-        {!event.allDay && event.time && (
-          <span className="text-xs">{event.time}</span>
-        )}
-      </div>
-    </div>
   );
 };
 
