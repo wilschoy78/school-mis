@@ -86,7 +86,7 @@ export const EventForm: React.FC<EventFormProps> = ({
 
   const handleSubmit = (data: EventFormValues) => {
     // Ensure required fields are present before passing to context functions
-    const eventData = {
+    const eventData: Omit<Event, 'id'> = {
       title: data.title,
       date: data.date,
       time: data.time || '',
