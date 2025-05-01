@@ -18,7 +18,7 @@ import Enrollment from "./pages/Enrollment";
 import Accounts from "./pages/Accounts";
 import Employees from "./pages/Employees";
 import Library from "./pages/Library";
-import Events from "./pages/Events"; // Import the Events page
+import Events from "./pages/Events"; 
 import Settings from "./pages/Settings";
 import SettingsSchool from "./pages/settings/SettingsSchool";
 import SettingsTheme from "./pages/settings/SettingsTheme";
@@ -38,13 +38,13 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <ApiProvider>
-          <SystemSettingsProvider>
-            <ThemeProvider>
-              <GradeLevelsProvider>
-                <AuthProvider>
-                  <EventProvider>
+      <ApiProvider>
+        <SystemSettingsProvider>
+          <ThemeProvider>
+            <GradeLevelsProvider>
+              <AuthProvider>
+                <EventProvider>
+                  <TooltipProvider>
                     <Toaster />
                     <Sonner />
                     <BrowserRouter>
@@ -57,7 +57,7 @@ const App = () => {
                         <Route path="/accounts" element={<Accounts />} />
                         <Route path="/employees" element={<Employees />} />
                         <Route path="/library" element={<Library />} />
-                        <Route path="/events" element={<Events />} /> {/* Add the Events route */}
+                        <Route path="/events" element={<Events />} />
                         <Route path="/settings" element={<Settings />} />
                         <Route path="/settings/school" element={<SettingsSchool />} />
                         <Route path="/settings/theme" element={<SettingsTheme />} />
@@ -73,13 +73,13 @@ const App = () => {
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </BrowserRouter>
-                  </EventProvider>
-                </AuthProvider>
-              </GradeLevelsProvider>
-            </ThemeProvider>
-          </SystemSettingsProvider>
-        </ApiProvider>
-      </TooltipProvider>
+                  </TooltipProvider>
+                </EventProvider>
+              </AuthProvider>
+            </GradeLevelsProvider>
+          </ThemeProvider>
+        </SystemSettingsProvider>
+      </ApiProvider>
     </QueryClientProvider>
   );
 };
