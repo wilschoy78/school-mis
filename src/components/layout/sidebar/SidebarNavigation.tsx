@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, Location } from 'react-router-dom';
 import { 
@@ -15,7 +14,8 @@ import {
   FileText,
   School,
   Section,
-  Globe
+  Globe,
+  Calendar
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth, UserRole, User } from '@/context/AuthContext';
@@ -72,6 +72,12 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
       path: '/library',
       icon: <LibraryIcon className="w-5 h-5" />,
       roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.TEACHER, UserRole.LIBRARIAN, UserRole.STUDENT],
+    },
+    {
+      name: 'Events',
+      path: '/events',
+      icon: <Calendar className="w-5 h-5" />,
+      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.REGISTRAR, UserRole.TEACHER, UserRole.LIBRARIAN, UserRole.STUDENT],
     },
   ].filter(item => checkPermission(item.roles));
 
