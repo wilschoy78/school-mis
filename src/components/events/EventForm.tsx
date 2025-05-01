@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { useEvents } from '@/context/EventContext';
 
 const FormSchema = z.object({
   title: z.string().min(2, { message: 'Title must be at least 2 characters' }),
@@ -47,32 +48,44 @@ const FormSchema = z.object({
 type EventFormValues = z.infer<typeof FormSchema>;
 
 interface EventFormProps {
-  onSubmit: (data: EventFormValues) => void;
-  defaultValues?: Partial<Event>;
+  event?: Event;
+  initialDate?: Date;
+  onSuccess?: () => void;
   onCancel?: () => void;
 }
 
 export const EventForm: React.FC<EventFormProps> = ({
-  onSubmit,
-  defaultValues,
+  event,
+  initialDate,
+  onSuccess,
   onCancel,
 }) => {
+  const { addEvent, updateEvent } = useEvents();
+  
   const form = useForm<EventFormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      title: defaultValues?.title || '',
-      date: defaultValues?.date || new Date(),
-      time: defaultValues?.time || '',
-      description: defaultValues?.description || '',
-      type: defaultValues?.type || 'meeting',
-      allDay: defaultValues?.allDay || false,
+      title: event?.title || '',
+      date: event?.date || initialDate || new Date(),
+      time: event?.time || '',
+      description: event?.description || '',
+      type: event?.type || 'meeting',
+      allDay: event?.allDay || false,
     },
   });
 
   const watchAllDay = form.watch('allDay');
 
   const handleSubmit = (data: EventFormValues) => {
-    onSubmit(data);
+    if (event) {
+      updateEvent(event.id, data);
+    } else {
+      addEvent(data);
+    }
+    
+    if (onSuccess) {
+      onSuccess();
+    }
   };
 
   return (
