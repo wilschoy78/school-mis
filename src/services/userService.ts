@@ -17,6 +17,23 @@ export interface UserProfile {
   updated_at: string;
 }
 
+const mapDatabaseToUserProfile = (data: any): UserProfile => {
+  return {
+    id: data.id,
+    name: data.name || '',
+    email: data.email || '',
+    role: (data.role as UserRole) || UserRole.STUDENT,
+    department: data.department,
+    position: data.position,
+    phone: data.phone,
+    status: data.status as 'Active' | 'Inactive' || 'Active',
+    employee_id: data.employee_id,
+    avatar_url: data.avatar_url,
+    created_at: data.created_at,
+    updated_at: data.updated_at,
+  };
+};
+
 export const userService = {
   async getUsers(): Promise<UserProfile[]> {
     const { data, error } = await supabase
@@ -29,13 +46,23 @@ export const userService = {
       throw error;
     }
 
-    return data || [];
+    return (data || []).map(mapDatabaseToUserProfile);
   },
 
   async createUser(userData: Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>): Promise<UserProfile> {
     const { data, error } = await supabase
       .from('profiles')
-      .insert([userData])
+      .insert([{
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        department: userData.department,
+        position: userData.position,
+        phone: userData.phone,
+        status: userData.status,
+        employee_id: userData.employee_id,
+        avatar_url: userData.avatar_url,
+      }])
       .select()
       .single();
 
@@ -44,13 +71,23 @@ export const userService = {
       throw error;
     }
 
-    return data;
+    return mapDatabaseToUserProfile(data);
   },
 
   async updateUser(id: string, userData: Partial<UserProfile>): Promise<UserProfile> {
     const { data, error } = await supabase
       .from('profiles')
-      .update(userData)
+      .update({
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        department: userData.department,
+        position: userData.position,
+        phone: userData.phone,
+        status: userData.status,
+        employee_id: userData.employee_id,
+        avatar_url: userData.avatar_url,
+      })
       .eq('id', id)
       .select()
       .single();
@@ -60,7 +97,7 @@ export const userService = {
       throw error;
     }
 
-    return data;
+    return mapDatabaseToUserProfile(data);
   },
 
   async deleteUser(id: string): Promise<void> {
