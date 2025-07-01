@@ -30,7 +30,7 @@ export type Database = {
           department?: string | null
           email?: string | null
           employee_id?: string | null
-          id: string
+          id?: string
           name?: string | null
           phone?: string | null
           position?: string | null
