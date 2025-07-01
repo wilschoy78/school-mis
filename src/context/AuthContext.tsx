@@ -1,4 +1,7 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 export enum UserRole {
   SUPER_ADMIN = 'SUPER_ADMIN',
@@ -15,34 +18,36 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
-  roles?: UserRole[]; // Added multiple roles support
+  roles?: UserRole[];
   avatar?: string;
   department?: string;
   position?: string;
   phone?: string;
   status?: 'Active' | 'Inactive' | 'On Leave';
   joinDate?: Date;
-  employeeId?: string; // Changed to optional with ?
+  employeeId?: string;
 }
 
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
   checkPermission: (allowedRoles: UserRole[]) => boolean;
-  updateUserProfile: (userData: Partial<User>) => void;
+  updateUserProfile: (userData: Partial<User>) => Promise<void>;
 }
 
 const initialState: AuthContextType = {
   user: null,
+  session: null,
   isAuthenticated: false,
   isLoading: true,
   login: async () => false,
-  logout: () => {},
+  logout: async () => {},
   checkPermission: () => false,
-  updateUserProfile: () => {}
+  updateUserProfile: async () => {}
 };
 
 const AuthContext = createContext<AuthContextType>(initialState);
@@ -55,78 +60,114 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check if user is already logged in
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Failed to parse stored user:', error);
-        localStorage.removeItem('user');
+  const convertSupabaseUserToUser = (supabaseUser: SupabaseUser, profile?: any): User => {
+    return {
+      id: supabaseUser.id,
+      name: profile?.name || supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'Unknown',
+      email: supabaseUser.email || '',
+      role: (profile?.role || supabaseUser.user_metadata?.role || UserRole.STUDENT) as UserRole,
+      roles: [(profile?.role || supabaseUser.user_metadata?.role || UserRole.STUDENT) as UserRole],
+      avatar: profile?.avatar_url || supabaseUser.user_metadata?.avatar_url || '',
+      department: profile?.department || supabaseUser.user_metadata?.department || '',
+      position: profile?.position || '',
+      phone: profile?.phone || '',
+      status: (profile?.status || 'Active') as 'Active' | 'Inactive' | 'On Leave',
+      joinDate: profile?.created_at ? new Date(profile.created_at) : new Date(),
+      employeeId: profile?.employee_id || null,
+    };
+  };
+
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching user profile:', error);
+        return null;
       }
+
+      return profile;
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      return null;
     }
-    
-    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        
+        setSession(session);
+        
+        if (session?.user) {
+          // Defer profile fetching to avoid potential deadlocks
+          setTimeout(async () => {
+            const profile = await fetchUserProfile(session.user.id);
+            const userData = convertSupabaseUserToUser(session.user, profile);
+            setUser(userData);
+            setIsLoading(false);
+          }, 0);
+        } else {
+          setUser(null);
+          setIsLoading(false);
+        }
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setSession(session);
+        fetchUserProfile(session.user.id).then((profile) => {
+          const userData = convertSupabaseUserToUser(session.user, profile);
+          setUser(userData);
+          setIsLoading(false);
+        });
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // In a real app, this would be an API call
-    // For demo purposes, we'll simulate a successful login with any credentials
     try {
-      // Simulate network request
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock user data with a role based on email
-      let role = UserRole.ADMIN;
-      if (email.includes('teacher')) {
-        role = UserRole.TEACHER;
-      } else if (email.includes('student')) {
-        role = UserRole.STUDENT;
-      } else if (email.includes('registrar')) {
-        role = UserRole.REGISTRAR;
-      } else if (email.includes('cashier')) {
-        role = UserRole.CASHIER;
-      } else if (email.includes('librarian')) {
-        role = UserRole.LIBRARIAN;
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
       }
-      
-      // Mock employee ID for staff members
-      let employeeId = null;
-      if (role !== UserRole.STUDENT) {
-        // Generate a mock employee ID for staff members
-        employeeId = `EMP-${Math.floor(1000 + Math.random() * 9000)}`;
-      }
-      
-      const mockUser: User = {
-        id: '1',
-        name: email.split('@')[0].replace(/\./g, ' ').replace(/(\b\w)/g, (char) => char.toUpperCase()),
-        email: email,
-        role: role,
-        roles: [role], // Initialize with primary role
-        avatar: '',
-        status: 'Active',
-        joinDate: new Date(),
-        employeeId: employeeId, // Add employee ID for staff
-      };
-      
-      // Store user in localStorage
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      setUser(mockUser);
-      
-      return true;
+
+      return !!data.user;
     } catch (error) {
       console.error('Login failed:', error);
       return false;
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('user');
-    setUser(null);
+  const logout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Logout error:', error);
+      }
+      // State will be updated by the auth state change listener
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   const checkPermission = (allowedRoles: UserRole[]): boolean => {
@@ -143,19 +184,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return false;
   };
 
-  const updateUserProfile = (userData: Partial<User>) => {
-    if (!user) return;
+  const updateUserProfile = async (userData: Partial<User>) => {
+    if (!user || !session) return;
     
-    const updatedUser = { ...user, ...userData };
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-    setUser(updatedUser);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: userData.name,
+          department: userData.department,
+          position: userData.position,
+          phone: userData.phone,
+          status: userData.status,
+          employee_id: userData.employeeId,
+          avatar_url: userData.avatar,
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        throw error;
+      }
+
+      // Update local user state
+      setUser(prev => prev ? { ...prev, ...userData } : null);
+    } catch (error) {
+      console.error('Failed to update user profile:', error);
+      throw error;
+    }
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated: !!user,
+        session,
+        isAuthenticated: !!session?.user,
         isLoading,
         login,
         logout,

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +11,7 @@ import { EventProvider } from "./context/EventContext";
 import ThemeProvider from "./components/ThemeProvider";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
+import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Students from "./pages/Students";
 import Enrollment from "./pages/Enrollment";
@@ -50,7 +50,8 @@ const App = () => {
                     <BrowserRouter>
                       <Routes>
                         <Route path="/" element={<Index />} />
-                        <Route path="/login" element={<Login />} />
+                        <Route path="/login" element={<Navigate to="/auth" replace />} />
+                        <Route path="/auth" element={<Auth />} />
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/students" element={<Students />} />
                         <Route path="/enrollment" element={<Enrollment />} />
