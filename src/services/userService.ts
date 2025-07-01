@@ -51,7 +51,7 @@ export const userService = {
   },
 
   async createUser(userData: Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>): Promise<UserProfile> {
-    const insertData: Omit<TablesInsert<'profiles'>, 'id'> = {
+    const insertData: TablesInsert<'profiles'> = {
       name: userData.name,
       email: userData.email,
       role: userData.role as string,
