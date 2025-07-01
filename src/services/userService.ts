@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/context/AuthContext';
+import { TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 export interface UserProfile {
   id: string;
@@ -50,19 +51,21 @@ export const userService = {
   },
 
   async createUser(userData: Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>): Promise<UserProfile> {
+    const insertData: TablesInsert<'profiles'> = {
+      name: userData.name,
+      email: userData.email,
+      role: userData.role as string,
+      department: userData.department,
+      position: userData.position,
+      phone: userData.phone,
+      status: userData.status as string,
+      employee_id: userData.employee_id,
+      avatar_url: userData.avatar_url,
+    };
+
     const { data, error } = await supabase
       .from('profiles')
-      .insert({
-        name: userData.name,
-        email: userData.email,
-        role: userData.role as string,
-        department: userData.department,
-        position: userData.position,
-        phone: userData.phone,
-        status: userData.status as string,
-        employee_id: userData.employee_id,
-        avatar_url: userData.avatar_url,
-      })
+      .insert(insertData)
       .select()
       .single();
 
@@ -75,19 +78,21 @@ export const userService = {
   },
 
   async updateUser(id: string, userData: Partial<UserProfile>): Promise<UserProfile> {
+    const updateData: TablesUpdate<'profiles'> = {
+      name: userData.name,
+      email: userData.email,
+      role: userData.role as string,
+      department: userData.department,
+      position: userData.position,
+      phone: userData.phone,
+      status: userData.status as string,
+      employee_id: userData.employee_id,
+      avatar_url: userData.avatar_url,
+    };
+
     const { data, error } = await supabase
       .from('profiles')
-      .update({
-        name: userData.name,
-        email: userData.email,
-        role: userData.role as string,
-        department: userData.department,
-        position: userData.position,
-        phone: userData.phone,
-        status: userData.status as string,
-        employee_id: userData.employee_id,
-        avatar_url: userData.avatar_url,
-      })
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();
