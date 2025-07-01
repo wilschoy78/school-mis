@@ -52,7 +52,7 @@ export const userService = {
   async createUser(userData: Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>): Promise<UserProfile> {
     const { data, error } = await supabase
       .from('profiles')
-      .insert([{
+      .insert({
         name: userData.name,
         email: userData.email,
         role: userData.role,
@@ -62,7 +62,7 @@ export const userService = {
         status: userData.status,
         employee_id: userData.employee_id,
         avatar_url: userData.avatar_url,
-      }])
+      })
       .select()
       .single();
 
