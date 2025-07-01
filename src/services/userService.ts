@@ -55,11 +55,11 @@ export const userService = {
       .insert({
         name: userData.name,
         email: userData.email,
-        role: userData.role,
+        role: userData.role as string,
         department: userData.department,
         position: userData.position,
         phone: userData.phone,
-        status: userData.status,
+        status: userData.status as string,
         employee_id: userData.employee_id,
         avatar_url: userData.avatar_url,
       })
@@ -80,11 +80,11 @@ export const userService = {
       .update({
         name: userData.name,
         email: userData.email,
-        role: userData.role,
+        role: userData.role as string,
         department: userData.department,
         position: userData.position,
         phone: userData.phone,
-        status: userData.status,
+        status: userData.status as string,
         employee_id: userData.employee_id,
         avatar_url: userData.avatar_url,
       })
