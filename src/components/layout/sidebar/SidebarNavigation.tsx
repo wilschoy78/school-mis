@@ -18,22 +18,21 @@ import {
   Globe
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useAuth, UserRole, User } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
+import { UserRole, User } from '@/types';
 
 interface SidebarNavigationProps {
-  user: User;
   collapsed: boolean;
   location: Location;
   closeMobileSidebar: () => void;
 }
 
 export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
-  user,
   collapsed,
   location,
   closeMobileSidebar
 }) => {
-  const { checkPermission } = useAuth();
+  const { user, checkPermission } = useAuth();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const navItems = [

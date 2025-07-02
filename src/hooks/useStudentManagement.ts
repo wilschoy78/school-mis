@@ -1,7 +1,8 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { Student, StudentFormData, SortDirection, SortField } from '@/types/student';
+import { Student, StudentFormData, SortDirection, SortField } from '@/types';
+import { studentService } from '@/services/studentService';
 
 export const ITEMS_PER_PAGE = 5;
 
@@ -22,8 +23,10 @@ const initialFormData: StudentFormData = {
   guardianContact: ''
 };
 
-export const useStudentManagement = (initialStudents: Student[]) => {
-  const [students, setStudents] = useState<Student[]>(initialStudents);
+export const useStudentManagement = () => {
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -32,6 +35,24 @@ export const useStudentManagement = (initialStudents: Student[]) => {
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [formData, setFormData] = useState<StudentFormData>(initialFormData);
   const { toast } = useToast();
+
+  const fetchStudents = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await studentService.getStudents();
+      setStudents(data);
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch students');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchStudents();
+  }, [fetchStudents]);
 
   const getFullName = (student: Student) => {
     let fullName = `${student.firstName} ${student.middleName ? student.middleName + ' ' : ''}${student.lastName}`;
@@ -114,7 +135,7 @@ export const useStudentManagement = (initialStudents: Student[]) => {
     return result;
   };
 
-  const handleAddOrUpdateStudent = () => {
+  const handleAddOrUpdateStudent = async () => {
     if (!formData.firstName || !formData.lastName || !formData.grade || !formData.section || !formData.gender) {
       toast({
         title: "Error",
@@ -124,35 +145,43 @@ export const useStudentManagement = (initialStudents: Student[]) => {
       return;
     }
 
-    if (selectedStudent) {
-      const updatedStudents = students.map(student => 
-        student.id === selectedStudent.id 
-          ? { 
-              ...formData, 
-              id: student.id,
-              age: parseInt(formData.age) || 0  // Convert to number
-            } 
-          : student
-      );
-      setStudents(updatedStudents);
+    setLoading(true);
+    try {
+      if (selectedStudent) {
+        const updatedStudent = {
+          ...formData,
+          id: selectedStudent.id,
+          age: parseInt(formData.age) || 0,
+        };
+        await studentService.updateStudent(updatedStudent);
+        toast({
+          title: "Success",
+          description: "Student updated successfully",
+        });
+      } else {
+        const newStudentData = {
+          ...formData,
+          age: parseInt(formData.age) || 0,
+        };
+        await studentService.addStudent(newStudentData);
+        toast({
+          title: "Success",
+          description: "Student added successfully",
+        });
+      }
+      await fetchStudents(); // Refresh data
+    } catch (err) {
+      setError('Failed to save student');
+      console.error(err);
       toast({
-        title: "Success",
-        description: "Student updated successfully",
+        title: "Error",
+        description: "Failed to save student",
+        variant: "destructive"
       });
-    } else {
-      const newStudent = {
-        id: (students.length + 1).toString(),
-        ...formData,
-        age: parseInt(formData.age) || 0  // Convert to number
-      };
-      setStudents([...students, newStudent]);
-      toast({
-        title: "Success",
-        description: "Student added successfully",
-      });
+    } finally {
+      setLoading(false);
+      resetFormAndDialog();
     }
-    
-    resetFormAndDialog();
   };
 
   const handleEditStudent = (student: Student) => {
@@ -196,6 +225,8 @@ export const useStudentManagement = (initialStudents: Student[]) => {
 
   return {
     students,
+    loading,
+    error,
     paginatedStudents,
     currentPage,
     totalPages,

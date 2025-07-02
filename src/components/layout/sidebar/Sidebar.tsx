@@ -13,13 +13,13 @@ export interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   const [collapsed, setCollapsed] = useState(false);
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
   const isMobile = useIsMobile();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // If user is not logged in, don't show sidebar
-  if (!user) return null;
+  // If user is not logged in or still loading, don't show sidebar
+  if (isLoading || !isAuthenticated) return null;
 
   const toggleSidebar = () => {
     setCollapsed(!collapsed);
@@ -37,7 +37,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
 
   const sidebarContent = (
     <SidebarContent 
-      user={user}
       collapsed={collapsed}
       toggleSidebar={toggleSidebar}
       location={location}

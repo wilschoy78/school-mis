@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card } from '@/components/ui/card';
-import { User } from '@/context/AuthContext';
+import { User } from '@/types/auth';
 
 interface WelcomeCardProps {
   user: User | null;

@@ -10,27 +10,7 @@ import {
   FileText, FileSpreadsheet, FileDown 
 } from 'lucide-react';
 import DataPagination from '@/components/common/DataPagination';
-
-type Student = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  middleName: string;
-  suffix: string;
-  grade: string;
-  section: string;
-  gender: string;
-  birthdate: Date;
-  age: number;
-  address: string;
-  email: string;
-  contact: string;
-  guardianName: string;
-  guardianContact: string;
-};
-
-type SortDirection = 'asc' | 'desc' | null;
-type SortField = 'firstName' | 'lastName' | 'grade' | 'section' | 'gender' | 'contact' | 'email' | 'age' | null;
+import { Student, SortDirection, SortField } from '@/types/student';
 
 interface StudentTableProps {
   students: Student[];

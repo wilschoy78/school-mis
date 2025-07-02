@@ -18,7 +18,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   requireAuth = true,
   className 
 }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const isMobile = useIsMobile();
   
   // Show loading state
@@ -43,7 +43,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   
   return (
     <div className="flex min-h-screen w-full">
-      <Sidebar />
+      <Sidebar user={user} />
       <main className={cn(
         "flex-1 transition-all duration-300 px-6",
         isMobile ? "w-full" : "ml-0",

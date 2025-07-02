@@ -8,6 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
+import { LoginFormData } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSystemSettings } from '@/pages/Settings';
 
@@ -16,23 +17,21 @@ const formSchema = z.object({
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
 });
 
-type FormValues = z.infer<typeof formSchema>;
-
 export const LoginForm: React.FC = () => {
   const { login, isLoading } = useAuth();
   const { systemName, logo } = useSystemSettings();
   const [showPassword, setShowPassword] = useState(false);
-  
-  const form = useForm<FormValues>({
+
+  const form = useForm<LoginFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
       password: '',
     },
   });
-  
-  const onSubmit = async (values: FormValues) => {
-    await login(values.email, values.password);
+
+  const onSubmit = async (values: LoginFormData) => {
+    await login(values);
   };
   
   const toggleShowPassword = () => {
@@ -68,7 +67,10 @@ export const LoginForm: React.FC = () => {
         password = 'admin123';
     }
     
-    await login(email, password);
+    if (email && password) {
+      const credentials: LoginFormData = { email, password };
+      await login(credentials);
+    }
   };
   
   return (

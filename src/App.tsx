@@ -28,6 +28,7 @@ import SettingsGradeLevels from "./pages/settings/SettingsGradeLevels";
 import SettingsApi from "./pages/settings/SettingsApi";
 import Users from "./pages/Users";
 import NotFound from "./pages/NotFound";
+import PrivateRoute from "./components/common/PrivateRoute";
 import { useState } from 'react';
 
 const App = () => {
@@ -46,25 +47,27 @@ const App = () => {
                   <Sonner />
                   <BrowserRouter>
                     <Routes>
-                      <Route path="/" element={<Index />} />
                       <Route path="/login" element={<Login />} />
-                      <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/students" element={<Students />} />
-                      <Route path="/enrollment" element={<Enrollment />} />
-                      <Route path="/accounts" element={<Accounts />} />
-                      <Route path="/employees" element={<Employees />} />
-                      <Route path="/library" element={<Library />} />
-                      <Route path="/settings" element={<Settings />} />
-                      <Route path="/settings/school" element={<SettingsSchool />} />
-                      <Route path="/settings/theme" element={<SettingsTheme />} />
-                      <Route path="/settings/notifications" element={<SettingsNotifications />} />
-                      <Route path="/settings/security" element={<SettingsSecurity />} />
-                      <Route path="/settings/documents" element={<SettingsDocuments />} />
-                      <Route path="/settings/sections" element={<SettingsSections />} />
-                      <Route path="/settings/grade-levels" element={<SettingsGradeLevels />} />
-                      <Route path="/settings/api" element={<SettingsApi />} />
-                      <Route path="/settings/users" element={<Navigate to="/users" replace />} />
-                      <Route path="/users" element={<Users />} />
+                      <Route element={<PrivateRoute />}>
+                        <Route path="/" element={<Index />} />
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/students" element={<Students />} />
+                        <Route path="/enrollment" element={<Enrollment />} />
+                        <Route path="/accounts" element={<Accounts />} />
+                        <Route path="/employees" element={<Employees />} />
+                        <Route path="/library" element={<Library />} />
+                        <Route path="/settings" element={<Settings />} />
+                        <Route path="/settings/school" element={<SettingsSchool />} />
+                        <Route path="/settings/theme" element={<SettingsTheme />} />
+                        <Route path="/settings/notifications" element={<SettingsNotifications />} />
+                        <Route path="/settings/security" element={<SettingsSecurity />} />
+                        <Route path="/settings/documents" element={<SettingsDocuments />} />
+                        <Route path="/settings/sections" element={<SettingsSections />} />
+                        <Route path="/settings/grade-levels" element={<SettingsGradeLevels />} />
+                        <Route path="/settings/api" element={<SettingsApi />} />
+                        <Route path="/settings/users" element={<Navigate to="/users" replace />} />
+                        <Route path="/users" element={<Users />} />
+                      </Route>
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>

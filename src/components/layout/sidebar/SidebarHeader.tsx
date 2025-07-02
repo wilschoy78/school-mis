@@ -10,33 +10,45 @@ import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { User } from '@/context/AuthContext';
+import { User } from '@/types/auth';
+import { TooltipTrigger } from '@radix-ui/react-tooltip';
 import { useSystemSettings } from '@/pages/Settings';
 
+import { useAuth } from '@/context/AuthContext';
+
 interface SidebarHeaderProps {
-  user: User;
   collapsed: boolean;
   toggleSidebar: () => void;
   isMobile: boolean;
 }
 
 export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ 
-  user, 
   collapsed, 
   toggleSidebar, 
   isMobile 
 }) => {
+  const { user } = useAuth();
   const { systemName, logo } = useSystemSettings();
   
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(part => part[0])
-      .join('')
-      .toUpperCase();
+  if (!user) {
+    return null;
+  }
+
+  const getInitials = (firstName?: string, lastName?: string) => {
+    if (firstName && lastName) {
+      return `${firstName[0]}${lastName[0]}`.toUpperCase();
+    }
+    if (firstName) {
+      return firstName.substring(0, 2).toUpperCase();
+    }
+    if (user.email) {
+      return user.email.substring(0, 2).toUpperCase();
+    }
+    return '??';
   };
+
+  const fullName = user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email || 'User';
 
   return (
     <>
@@ -86,14 +98,14 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
             <TooltipTrigger asChild>
               <div className="flex justify-center p-4">
                 <Avatar className="h-9 w-9 border border-sidebar-border">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                  <AvatarImage src={user.avatar} alt={fullName} />
+                  <AvatarFallback>{getInitials(user.firstName, user.lastName)}</AvatarFallback>
                 </Avatar>
               </div>
             </TooltipTrigger>
             <TooltipContent side="right">
               <div className="flex flex-col">
-                <span className="font-medium">{user.name}</span>
+                <span className="font-medium">{fullName}</span>
                 <span className="text-xs text-muted-foreground capitalize">{user.role.replace('_', ' ')}</span>
                 {user.department && <span className="text-xs text-muted-foreground">{user.department}</span>}
               </div>
@@ -103,11 +115,11 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
       ) : (
         <div className="flex items-center gap-3 p-4">
           <Avatar className="h-9 w-9 border border-sidebar-border">
-            <AvatarImage src={user.avatar} alt={user.name} />
-            <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+            <AvatarImage src={user.avatar} alt={fullName} />
+            <AvatarFallback>{getInitials(user.firstName, user.lastName)}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col animate-fade-in">
-            <span className="text-sm font-medium text-sidebar-foreground">{user.name}</span>
+            <span className="text-sm font-medium text-sidebar-foreground">{fullName}</span>
             <span className="text-xs text-sidebar-foreground/70 capitalize">{user.role.replace('_', ' ')}</span>
           </div>
         </div>
