@@ -8,7 +8,6 @@ import { AuthProvider } from "@/context/AuthContext";
 import { SystemSettingsProvider } from "./pages/Settings";
 import { GradeLevelsProvider } from "./pages/settings/SettingsGradeLevels";
 import { ApiProvider } from "./context/ApiContext";
-import { EventProvider } from "./context/EventContext";
 import ThemeProvider from "./components/ThemeProvider";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -18,7 +17,6 @@ import Enrollment from "./pages/Enrollment";
 import Accounts from "./pages/Accounts";
 import Employees from "./pages/Employees";
 import Library from "./pages/Library";
-import Events from "./pages/Events"; 
 import Settings from "./pages/Settings";
 import SettingsSchool from "./pages/settings/SettingsSchool";
 import SettingsTheme from "./pages/settings/SettingsTheme";
@@ -38,48 +36,45 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ApiProvider>
-        <SystemSettingsProvider>
-          <ThemeProvider>
-            <GradeLevelsProvider>
-              <AuthProvider>
-                <EventProvider>
-                  <TooltipProvider>
-                    <Toaster />
-                    <Sonner />
-                    <BrowserRouter>
-                      <Routes>
-                        <Route path="/" element={<Index />} />
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/students" element={<Students />} />
-                        <Route path="/enrollment" element={<Enrollment />} />
-                        <Route path="/accounts" element={<Accounts />} />
-                        <Route path="/employees" element={<Employees />} />
-                        <Route path="/library" element={<Library />} />
-                        <Route path="/events" element={<Events />} />
-                        <Route path="/settings" element={<Settings />} />
-                        <Route path="/settings/school" element={<SettingsSchool />} />
-                        <Route path="/settings/theme" element={<SettingsTheme />} />
-                        <Route path="/settings/notifications" element={<SettingsNotifications />} />
-                        <Route path="/settings/security" element={<SettingsSecurity />} />
-                        <Route path="/settings/documents" element={<SettingsDocuments />} />
-                        <Route path="/settings/sections" element={<SettingsSections />} />
-                        <Route path="/settings/grade-levels" element={<SettingsGradeLevels />} />
-                        <Route path="/settings/api" element={<SettingsApi />} />
-                        <Route path="/settings/users" element={<Navigate to="/users" replace />} />
-                        <Route path="/users" element={<Users />} />
-                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </BrowserRouter>
-                  </TooltipProvider>
-                </EventProvider>
-              </AuthProvider>
-            </GradeLevelsProvider>
-          </ThemeProvider>
-        </SystemSettingsProvider>
-      </ApiProvider>
+      <TooltipProvider>
+        <ApiProvider>
+          <SystemSettingsProvider>
+            <ThemeProvider>
+              <GradeLevelsProvider>
+                <AuthProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/students" element={<Students />} />
+                      <Route path="/enrollment" element={<Enrollment />} />
+                      <Route path="/accounts" element={<Accounts />} />
+                      <Route path="/employees" element={<Employees />} />
+                      <Route path="/library" element={<Library />} />
+                      <Route path="/settings" element={<Settings />} />
+                      <Route path="/settings/school" element={<SettingsSchool />} />
+                      <Route path="/settings/theme" element={<SettingsTheme />} />
+                      <Route path="/settings/notifications" element={<SettingsNotifications />} />
+                      <Route path="/settings/security" element={<SettingsSecurity />} />
+                      <Route path="/settings/documents" element={<SettingsDocuments />} />
+                      <Route path="/settings/sections" element={<SettingsSections />} />
+                      <Route path="/settings/grade-levels" element={<SettingsGradeLevels />} />
+                      <Route path="/settings/api" element={<SettingsApi />} />
+                      <Route path="/settings/users" element={<Navigate to="/users" replace />} />
+                      <Route path="/users" element={<Users />} />
+                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </BrowserRouter>
+                </AuthProvider>
+              </GradeLevelsProvider>
+            </ThemeProvider>
+          </SystemSettingsProvider>
+        </ApiProvider>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 };

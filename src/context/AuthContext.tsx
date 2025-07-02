@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export enum UserRole {
@@ -22,7 +23,6 @@ export interface User {
   phone?: string;
   status?: 'Active' | 'Inactive' | 'On Leave';
   joinDate?: Date;
-  employeeId?: string; // Changed to optional with ?
 }
 
 interface AuthContextType {
@@ -94,13 +94,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         role = UserRole.LIBRARIAN;
       }
       
-      // Mock employee ID for staff members
-      let employeeId = null;
-      if (role !== UserRole.STUDENT) {
-        // Generate a mock employee ID for staff members
-        employeeId = `EMP-${Math.floor(1000 + Math.random() * 9000)}`;
-      }
-      
       const mockUser: User = {
         id: '1',
         name: email.split('@')[0].replace(/\./g, ' ').replace(/(\b\w)/g, (char) => char.toUpperCase()),
@@ -110,7 +103,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         avatar: '',
         status: 'Active',
         joinDate: new Date(),
-        employeeId: employeeId, // Add employee ID for staff
       };
       
       // Store user in localStorage
