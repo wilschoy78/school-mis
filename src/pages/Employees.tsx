@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -24,10 +23,7 @@ import DataPagination from '@/components/common/DataPagination';
 const employeesData = [
   { 
     id: '1', 
-    firstName: 'John',
-    middleName: '',
-    lastName: 'Smith',
-    suffix: '',
+    name: 'John Smith', 
     email: 'john.smith@school.edu', 
     phone: '555-1234',
     position: 'Math Teacher', 
@@ -38,10 +34,7 @@ const employeesData = [
   },
   { 
     id: '2', 
-    firstName: 'Sarah',
-    middleName: '',
-    lastName: 'Johnson',
-    suffix: '',
+    name: 'Sarah Johnson', 
     email: 'sarah.johnson@school.edu', 
     phone: '555-5678',
     position: 'Science Teacher', 
@@ -52,10 +45,7 @@ const employeesData = [
   },
   { 
     id: '3', 
-    firstName: 'Michael',
-    middleName: '',
-    lastName: 'Brown',
-    suffix: '',
+    name: 'Michael Brown', 
     email: 'michael.brown@school.edu', 
     phone: '555-9012',
     position: 'Principal', 
@@ -66,10 +56,7 @@ const employeesData = [
   },
   { 
     id: '4', 
-    firstName: 'Emily',
-    middleName: '',
-    lastName: 'Davis',
-    suffix: '',
+    name: 'Emily Davis', 
     email: 'emily.davis@school.edu', 
     phone: '555-3456',
     position: 'Librarian', 
@@ -80,10 +67,7 @@ const employeesData = [
   },
   { 
     id: '5', 
-    firstName: 'Robert',
-    middleName: '',
-    lastName: 'Wilson',
-    suffix: '',
+    name: 'Robert Wilson', 
     email: 'robert.wilson@school.edu', 
     phone: '555-7890',
     position: 'English Teacher', 
@@ -94,10 +78,7 @@ const employeesData = [
   },
   { 
     id: '6', 
-    firstName: 'Jennifer',
-    middleName: '',
-    lastName: 'Thomas',
-    suffix: '',
+    name: 'Jennifer Thomas', 
     email: 'jennifer.thomas@school.edu', 
     phone: '555-5432',
     position: 'Physical Education Teacher', 
@@ -108,10 +89,7 @@ const employeesData = [
   },
   { 
     id: '7', 
-    firstName: 'Daniel',
-    middleName: '',
-    lastName: 'Harris',
-    suffix: '',
+    name: 'Daniel Harris', 
     email: 'daniel.harris@school.edu', 
     phone: '555-8765',
     position: 'IT Coordinator', 
@@ -122,10 +100,7 @@ const employeesData = [
   },
   { 
     id: '8', 
-    firstName: 'Melissa',
-    middleName: '',
-    lastName: 'Garcia',
-    suffix: '',
+    name: 'Melissa Garcia', 
     email: 'melissa.garcia@school.edu', 
     phone: '555-9876',
     position: 'Counselor', 
@@ -146,10 +121,7 @@ const EmployeesPage = () => {
   const [employees, setEmployees] = useState(employeesData);
   const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState({
-    firstName: '',
-    middleName: '',
-    lastName: '',
-    suffix: '',
+    name: '',
     email: '',
     phone: '',
     position: '',
@@ -165,13 +137,12 @@ const EmployeesPage = () => {
     displayedEmployees = employees.filter(emp => !emp.position.includes('Teacher'));
   }
 
-  const filteredEmployees = displayedEmployees.filter(employee => {
-    const fullName = `${employee.firstName} ${employee.middleName} ${employee.lastName} ${employee.suffix}`.toLowerCase();
-    return fullName.includes(searchTerm.toLowerCase()) ||
-      employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.position.toLowerCase().includes(searchTerm.toLowerCase());
-  });
+  const filteredEmployees = displayedEmployees.filter(employee => 
+    employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    employee.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    employee.position.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const totalPages = Math.ceil(filteredEmployees.length / ITEMS_PER_PAGE);
   const paginatedEmployees = filteredEmployees.slice(
@@ -193,7 +164,7 @@ const EmployeesPage = () => {
   };
 
   const handleAddEmployee = () => {
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.position || !formData.department) {
+    if (!formData.name || !formData.email || !formData.position || !formData.department) {
       toast({
         title: "Error",
         description: "Please fill all required fields",
@@ -233,10 +204,7 @@ const EmployeesPage = () => {
     }
     
     setFormData({
-      firstName: '',
-      middleName: '',
-      lastName: '',
-      suffix: '',
+      name: '',
       email: '',
       phone: '',
       position: '',
@@ -250,10 +218,7 @@ const EmployeesPage = () => {
   const handleEditEmployee = (employee) => {
     setSelectedEmployee(employee);
     setFormData({
-      firstName: employee.firstName,
-      middleName: employee.middleName,
-      lastName: employee.lastName,
-      suffix: employee.suffix,
+      name: employee.name,
       email: employee.email,
       phone: employee.phone,
       position: employee.position,
@@ -263,16 +228,12 @@ const EmployeesPage = () => {
     setIsAddDialogOpen(true);
   };
 
-  const getInitials = (employee) => {
-    return `${employee.firstName[0]}${employee.lastName[0]}`.toUpperCase();
-  };
-
-  const getFullName = (employee) => {
-    let fullName = `${employee.firstName}`;
-    if (employee.middleName) fullName += ` ${employee.middleName}`;
-    fullName += ` ${employee.lastName}`;
-    if (employee.suffix) fullName += ` ${employee.suffix}`;
-    return fullName;
+  const getInitials = (name) => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase();
   };
 
   const getStatusBadge = (status) => {
@@ -314,53 +275,18 @@ const EmployeesPage = () => {
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="firstName" className="text-right">First Name*</Label>
-                    <Input 
-                      id="firstName" 
-                      name="firstName" 
-                      value={formData.firstName} 
-                      onChange={handleInputChange} 
-                      className="col-span-3" 
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="middleName" className="text-right">Middle Name</Label>
-                    <Input 
-                      id="middleName" 
-                      name="middleName" 
-                      value={formData.middleName} 
-                      onChange={handleInputChange} 
-                      className="col-span-3" 
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="lastName" className="text-right">Last Name*</Label>
-                    <Input 
-                      id="lastName" 
-                      name="lastName" 
-                      value={formData.lastName} 
-                      onChange={handleInputChange} 
-                      className="col-span-3" 
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="suffix" className="text-right">Suffix</Label>
-                    <Input 
-                      id="suffix" 
-                      name="suffix" 
-                      value={formData.suffix} 
-                      onChange={handleInputChange} 
-                      className="col-span-3" 
-                      placeholder="Jr., Sr., III, etc."
-                    />
-                  </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="name" className="text-right">Name</Label>
+                  <Input 
+                    id="name" 
+                    name="name" 
+                    value={formData.name} 
+                    onChange={handleInputChange} 
+                    className="col-span-3" 
+                  />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="email" className="text-right">Email*</Label>
+                  <Label htmlFor="email" className="text-right">Email</Label>
                   <Input 
                     id="email" 
                     name="email" 
@@ -381,7 +307,7 @@ const EmployeesPage = () => {
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="position" className="text-right">Position*</Label>
+                  <Label htmlFor="position" className="text-right">Position</Label>
                   <Select 
                     value={formData.position} 
                     onValueChange={(value) => handleSelectChange('position', value)}
@@ -404,7 +330,7 @@ const EmployeesPage = () => {
                   </Select>
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="department" className="text-right">Department*</Label>
+                  <Label htmlFor="department" className="text-right">Department</Label>
                   <Select 
                     value={formData.department} 
                     onValueChange={(value) => handleSelectChange('department', value)}
@@ -446,10 +372,7 @@ const EmployeesPage = () => {
                   setIsAddDialogOpen(false);
                   setSelectedEmployee(null);
                   setFormData({
-                    firstName: '',
-                    middleName: '',
-                    lastName: '',
-                    suffix: '',
+                    name: '',
                     email: '',
                     phone: '',
                     position: '',
@@ -483,7 +406,6 @@ const EmployeesPage = () => {
             handleEdit={handleEditEmployee} 
             getInitials={getInitials}
             getStatusBadge={getStatusBadge}
-            getFullName={getFullName}
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
@@ -495,7 +417,6 @@ const EmployeesPage = () => {
             handleEdit={handleEditEmployee} 
             getInitials={getInitials}
             getStatusBadge={getStatusBadge}
-            getFullName={getFullName}
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
@@ -507,7 +428,6 @@ const EmployeesPage = () => {
             handleEdit={handleEditEmployee} 
             getInitials={getInitials}
             getStatusBadge={getStatusBadge}
-            getFullName={getFullName}
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
@@ -523,7 +443,6 @@ const EmployeeTable = ({
   handleEdit, 
   getInitials, 
   getStatusBadge,
-  getFullName,
   currentPage,
   totalPages,
   onPageChange
@@ -551,11 +470,11 @@ const EmployeeTable = ({
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
-                        <AvatarImage src={employee.avatar} alt={getFullName(employee)} />
-                        <AvatarFallback>{getInitials(employee)}</AvatarFallback>
+                        <AvatarImage src={employee.avatar} alt={employee.name} />
+                        <AvatarFallback>{getInitials(employee.name)}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-medium">{getFullName(employee)}</p>
+                        <p className="font-medium">{employee.name}</p>
                         <p className="text-sm text-gray-500">{employee.email}</p>
                       </div>
                     </div>

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, Location } from 'react-router-dom';
 import { 
@@ -14,8 +15,7 @@ import {
   FileText,
   School,
   Section,
-  Globe,
-  Calendar
+  Globe
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth, UserRole, User } from '@/context/AuthContext';
@@ -73,12 +73,6 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
       icon: <LibraryIcon className="w-5 h-5" />,
       roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.TEACHER, UserRole.LIBRARIAN, UserRole.STUDENT],
     },
-    {
-      name: 'Events',
-      path: '/events',
-      icon: <Calendar className="w-5 h-5" />,
-      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.REGISTRAR, UserRole.TEACHER, UserRole.LIBRARIAN, UserRole.STUDENT],
-    },
   ].filter(item => checkPermission(item.roles));
 
   // Settings sub-menu items
@@ -126,7 +120,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
       roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
     },
     {
-      name: 'Users',
+      name: 'User Management',
       path: '/users',
       icon: <UserCog className="w-4 h-4" />,
       roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
@@ -204,7 +198,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
           
           {/* Settings submenu */}
           {!collapsed && settingsOpen && (
-            <ul className="mt-1 ml-6 space-y-1 border-l border-sidebar-border pl-4">
+            <ul className="mt-1 ml-6 space-y-1 border-l border-sidebar-border pl-2">
               {settingsSubItems.map((subItem) => {
                 const isActive = location.pathname === subItem.path;
                 return (

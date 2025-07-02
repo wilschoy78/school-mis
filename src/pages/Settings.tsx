@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 
 export const SystemSettingsContext = createContext({
-  systemName: 'School MIS',
+  systemName: 'Alicia MIS',
   updateSystemName: (name: string) => {},
   logo: '',
   updateLogo: (logo: string) => {},
@@ -23,7 +23,7 @@ export const SystemSettingsContext = createContext({
 export const useSystemSettings = () => useContext(SystemSettingsContext);
 
 export const SystemSettingsProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
-  const [systemName, setSystemName] = useState('School MIS');
+  const [systemName, setSystemName] = useState('Alicia MIS');
   const [logo, setLogo] = useState('');
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light');
   const [primaryColor, setPrimaryColor] = useState('blue');
