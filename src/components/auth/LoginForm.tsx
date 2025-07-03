@@ -3,13 +3,14 @@ import React, { useState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, BookOpen } from 'lucide-react';
+import { Eye, EyeOff, BookOpen, Terminal } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { LoginFormData } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useSystemSettings } from '@/pages/Settings';
 
 const formSchema = z.object({
@@ -21,6 +22,7 @@ export const LoginForm: React.FC = () => {
   const { login, isLoading } = useAuth();
   const { systemName, logo } = useSystemSettings();
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(formSchema),
@@ -31,7 +33,10 @@ export const LoginForm: React.FC = () => {
   });
 
   const onSubmit = async (values: LoginFormData) => {
-    await login(values);
+    const success = await login(values);
+    if (!success) {
+      setError('Invalid email or password.');
+    }
   };
   
   const toggleShowPassword = () => {
@@ -39,6 +44,7 @@ export const LoginForm: React.FC = () => {
   };
   
   const handleDemoLogin = async (role: string) => {
+    setError(null);
     let email, password;
     
     switch (role) {
@@ -91,6 +97,12 @@ export const LoginForm: React.FC = () => {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <Terminal className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
             <FormField
               control={form.control}
               name="email"
@@ -141,7 +153,7 @@ export const LoginForm: React.FC = () => {
           </form>
         </Form>
       </CardContent>
-      <CardFooter className="flex flex-col space-y-4">
+      {/* <CardFooter className="flex flex-col space-y-4">
         <div className="text-sm text-center text-muted-foreground">
           Demo accounts for testing:
         </div>
@@ -162,7 +174,7 @@ export const LoginForm: React.FC = () => {
             Librarian Demo
           </Button>
         </div>
-      </CardFooter>
+      </CardFooter> */}
     </Card>
   );
 };

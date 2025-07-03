@@ -37,11 +37,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const storedUser = localStorage.getItem('user');
     const token = localStorage.getItem('token');
-    if (token) {
-      // In a real app, you'd verify the token with the backend
-      // For now, we'll assume the token is valid and decode it
-      // This is not secure and should be replaced with a proper implementation
+
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Failed to parse stored user:', error);
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+      }
+    } else if (token) {
+      // Fallback: if user object not stored, try decoding from token (less reliable for full user data)
       try {
         const decodedUser = JSON.parse(atob(token.split('.')[1]));
         setUser(decodedUser);
@@ -55,10 +63,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (credentials: LoginFormData): Promise<boolean> => {
     try {
-      const { token } = await authService.login(credentials);
+      const response = await authService.login(credentials);
+      const { token, user: loggedInUser } = response; // Assuming response contains both token and user
+      
       localStorage.setItem('token', token);
-      const decodedUser = JSON.parse(atob(token.split('.')[1]));
-      setUser(decodedUser);
+      localStorage.setItem('user', JSON.stringify(loggedInUser)); // Store the full user object
+      setUser(loggedInUser);
       return true;
     } catch (error) {
       console.error('Login failed:', error);
@@ -68,6 +78,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = () => {
     authService.logout();
+    localStorage.removeItem('user'); // Also remove user from local storage
     setUser(null);
   };
 
@@ -91,7 +102,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!user) return;
     
     const updatedUser = { ...user, ...userData };
-    localStorage.setItem('user', JSON.stringify(updatedUser));
+    localStorage.setItem('user', JSON.stringify(updatedUser)); // Update user in local storage
     setUser(updatedUser);
   };
 
