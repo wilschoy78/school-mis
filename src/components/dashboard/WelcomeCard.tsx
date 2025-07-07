@@ -16,7 +16,7 @@ export const WelcomeCard: React.FC<WelcomeCardProps> = ({ user }) => {
     <Card className="p-6 mb-6">
       <h2 className="text-lg font-medium mb-4">Welcome, {fullName}!</h2>
       <p className="text-muted-foreground">
-        You're logged in as: <span className="font-medium capitalize">{user.role.toLowerCase().replace('_', ' ')}</span>
+        You're logged in as: <span className="font-medium capitalize">{user.roles[0]?.toLowerCase().replace('_', ' ')}</span>
       </p>
     </Card>
   );

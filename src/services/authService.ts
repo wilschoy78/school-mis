@@ -4,6 +4,9 @@ import { LoginFormData, RegisterFormData } from '@/types';
 export const authService = {
   login: async (credentials: LoginFormData) => {
     const response = await api.post('/auth/login', credentials);
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+    }
     return response.data;
   },
 

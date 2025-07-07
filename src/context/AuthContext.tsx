@@ -90,11 +90,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return user.roles.some(role => allowedRoles.includes(role));
     }
 
-    // Fallback to checking the single user.role
-    if (user.role) {
-      return allowedRoles.includes(user.role);
-    }
-
     return false;
   };
 

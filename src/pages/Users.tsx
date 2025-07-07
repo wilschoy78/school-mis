@@ -45,8 +45,9 @@ interface UserForm {
   firstName: string;
   lastName: string;
   email: string;
-  role: UserRole;
   roles: UserRole[];
+  department?: string;
+  status?: 'active' | 'inactive' | 'suspended';
 }
 
 const UsersPage = () => {
@@ -54,6 +55,7 @@ const UsersPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
+  const [totalUsers, setTotalUsers] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -65,8 +67,9 @@ const UsersPage = () => {
       firstName: '',
       lastName: '',
       email: '',
-      role: UserRole.STUDENT,
       roles: [UserRole.STUDENT],
+      department: '',
+      status: 'active',
     }
   });
   
@@ -75,8 +78,15 @@ const UsersPage = () => {
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await userService.getUsers();
-      setUsers(data);
+      const rolesToFetch = activeTab === 'all' ? 'all' : [activeTab as UserRole];
+      const { users: fetchedUsers, total } = await userService.getUsers(
+        currentPage,
+        ITEMS_PER_PAGE,
+        rolesToFetch,
+        searchTerm,
+      );
+      setUsers(fetchedUsers);
+      setTotalUsers(total);
       setError(null);
     } catch (err) {
       setError('Failed to fetch users');
@@ -84,50 +94,37 @@ const UsersPage = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeTab, currentPage, searchTerm]);
 
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
 
-  const filteredUsers = users.filter(user => {
-    if (activeTab !== 'all' && activeTab !== user.role.toLowerCase()) {
-      return false;
-    }
-    
-    if (
-      searchTerm &&
-      !(user.firstName + ' ' + user.lastName).toLowerCase().includes(searchTerm.toLowerCase()) &&
-      !user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    ) {
-      return false;
-    }
-    
-    return true;
-  });
+  const totalPages = Math.ceil(totalUsers / ITEMS_PER_PAGE);
+  const paginatedUsers = users;
 
-  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
-  const paginatedUsers = filteredUsers.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE, 
-    currentPage * ITEMS_PER_PAGE
-  );
+  const onPageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, activeTab]);
 
   const handleSubmit = async (data: UserForm) => {
-    const roles = selectedRoles.length > 0 ? selectedRoles : [data.role];
+    const roles = selectedRoles.length > 0 ? selectedRoles : data.roles;
     
     setLoading(true);
     try {
       if (selectedUser) {
-        const updatedUser = {
-          ...selectedUser,
-          ...data,
-          roles,
-        };
-        await userService.updateUser(updatedUser);
+        const { ...updateData } = data;
+const updatedUser = {
+  ...updateData,
+  roles,
+  department: updateData.department,
+  status: updateData.status,
+};
+        await userService.updateUser(selectedUser.id, updatedUser);
         toast({
           title: "User Updated",
           description: `${data.firstName} ${data.lastName}'s account has been updated.`
@@ -136,6 +133,8 @@ const UsersPage = () => {
         const newUser = {
           ...data,
           roles,
+          department: data.department,
+          status: data.status,
         };
         await userService.addUser(newUser);
         toast({
@@ -163,13 +162,14 @@ const UsersPage = () => {
 
   const handleEdit = (user: User) => {
     setSelectedUser(user);
-    setSelectedRoles(user.roles || [user.role]);
+    setSelectedRoles(user.roles);
     form.reset({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
-      role: user.role,
-      roles: user.roles || [user.role],
+      roles: user.roles,
+      department: user.department || '',
+      status: user.status || 'active',
     });
     setIsAddDialogOpen(true);
   };
@@ -179,8 +179,9 @@ const UsersPage = () => {
       firstName: '',
       lastName: '',
       email: '',
-      role: UserRole.STUDENT,
       roles: [UserRole.STUDENT],
+      department: '',
+      status: 'active',
     });
     setSelectedRoles([UserRole.STUDENT]);
     setSelectedUser(null);
@@ -207,13 +208,13 @@ const UsersPage = () => {
 
   const getRoleBadge = (role: UserRole) => {
     const styles = {
-      [UserRole.SUPER_ADMIN]: "bg-red-500",
       [UserRole.ADMIN]: "bg-purple-500",
       [UserRole.TEACHER]: "bg-blue-500",
       [UserRole.REGISTRAR]: "bg-green-500",
-      [UserRole.CASHIER]: "bg-yellow-500",
       [UserRole.LIBRARIAN]: "bg-teal-500",
-      [UserRole.STUDENT]: "bg-gray-500"
+      [UserRole.STUDENT]: "bg-gray-500",
+      [UserRole.STAFF]: "bg-orange-500",
+      [UserRole.PARENT]: "bg-pink-500",
     };
     
     return (
@@ -224,10 +225,12 @@ const UsersPage = () => {
   };
 
   const getRolesByUser = (user: User) => {
-    const roles = user.roles || [user.role];
+    const roles = user.roles;
     return (
       <div className="flex flex-wrap gap-1">
-        {roles.map((role: UserRole) => getRoleBadge(role))}
+        {roles.map((role: UserRole) => (
+          <span key={role}>{getRoleBadge(role)}</span>
+        ))}
       </div>
     );
   };
@@ -338,38 +341,30 @@ const UsersPage = () => {
 
                   <FormField
                     control={form.control}
-                    name="role"
+                    name="department"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Primary Role</FormLabel>
-                        <Select 
-                          onValueChange={(value) => {
-                            field.onChange(value);
-                            // Add to selectedRoles if not already included
-                            if (!selectedRoles.includes(value as UserRole)) {
-                              setSelectedRoles(prev => [...prev, value as UserRole]);
-                            }
-                          }} 
-                          defaultValue={field.value}
-                        >
+                        <FormLabel>Department</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select a role" />
+                              <SelectValue placeholder="Select a department" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value={UserRole.ADMIN}>Administrator</SelectItem>
-                            <SelectItem value={UserRole.TEACHER}>Teacher</SelectItem>
-                            <SelectItem value={UserRole.REGISTRAR}>Registrar</SelectItem>
-                            <SelectItem value={UserRole.CASHIER}>Cashier</SelectItem>
-                            <SelectItem value={UserRole.LIBRARIAN}>Librarian</SelectItem>
-                            <SelectItem value={UserRole.STUDENT}>Student</SelectItem>
+                            <SelectItem value="Administration">Administration</SelectItem>
+                            <SelectItem value="Academics">Academics</SelectItem>
+                            <SelectItem value="Finance">Finance</SelectItem>
+                            <SelectItem value="Human Resources">Human Resources</SelectItem>
+                            <SelectItem value="Library">Library</SelectItem>
+                            <SelectItem value="Student Affairs">Student Affairs</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
 
                   <FormItem>
                     <FormLabel>Assigned Roles</FormLabel>
@@ -415,12 +410,6 @@ const UsersPage = () => {
                           Registrar
                         </DropdownMenuCheckboxItem>
                         <DropdownMenuCheckboxItem
-                          checked={selectedRoles.includes(UserRole.CASHIER)}
-                          onCheckedChange={() => toggleRole(UserRole.CASHIER)}
-                        >
-                          Cashier
-                        </DropdownMenuCheckboxItem>
-                        <DropdownMenuCheckboxItem
                           checked={selectedRoles.includes(UserRole.LIBRARIAN)}
                           onCheckedChange={() => toggleRole(UserRole.LIBRARIAN)}
                         >
@@ -432,10 +421,64 @@ const UsersPage = () => {
                         >
                           Student
                         </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={selectedRoles.includes(UserRole.STAFF)}
+                          onCheckedChange={() => toggleRole(UserRole.STAFF)}
+                        >
+                          Staff
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={selectedRoles.includes(UserRole.PARENT)}
+                          onCheckedChange={() => toggleRole(UserRole.PARENT)}
+                        >
+                          Parent
+                        </DropdownMenuCheckboxItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </FormItem>
 
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel>Account Status</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex flex-col space-y-1"
+                          >
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem value="active" />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                Active
+                              </FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem value="inactive" />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                Inactive
+                              </FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem value="suspended" />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                Suspended
+                              </FormLabel>
+                            </FormItem>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <DialogFooter className="mt-6">
                     <Button 
@@ -478,7 +521,7 @@ const UsersPage = () => {
             getRolesByUser={getRolesByUser}
             currentPage={currentPage}
             totalPages={totalPages}
-            onPageChange={setCurrentPage}
+            onPageChange={onPageChange}
           />
         </TabsContent>
         <TabsContent value="admin" className="mt-0">
@@ -489,7 +532,7 @@ const UsersPage = () => {
             getRolesByUser={getRolesByUser}
             currentPage={currentPage}
             totalPages={totalPages}
-            onPageChange={setCurrentPage}
+            onPageChange={onPageChange}
           />
         </TabsContent>
         <TabsContent value="teacher" className="mt-0">
@@ -500,7 +543,7 @@ const UsersPage = () => {
             getRolesByUser={getRolesByUser}
             currentPage={currentPage}
             totalPages={totalPages}
-            onPageChange={setCurrentPage}
+            onPageChange={onPageChange}
           />
         </TabsContent>
         <TabsContent value="student" className="mt-0">
@@ -511,7 +554,7 @@ const UsersPage = () => {
             getRolesByUser={getRolesByUser}
             currentPage={currentPage}
             totalPages={totalPages}
-            onPageChange={setCurrentPage}
+            onPageChange={onPageChange}
           />
         </TabsContent>
         <TabsContent value="staff" className="mt-0">
@@ -522,7 +565,7 @@ const UsersPage = () => {
             getRolesByUser={getRolesByUser}
             currentPage={currentPage}
             totalPages={totalPages}
-            onPageChange={setCurrentPage}
+            onPageChange={onPageChange}
           />
         </TabsContent>
       </Tabs>
@@ -556,6 +599,8 @@ const UsersTable = ({
             <TableRow>
               <TableHead>User</TableHead>
               <TableHead>Roles</TableHead>
+              <TableHead>Department</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -576,6 +621,12 @@ const UsersTable = ({
                     </div>
                   </TableCell>
                   <TableCell>{getRolesByUser(user)}</TableCell>
+                  <TableCell>{user.department || 'N/A'}</TableCell>
+                  <TableCell>
+                    <Badge variant={user.status === 'active' ? 'default' : 'destructive'}>
+                      {user.status ? user.status.charAt(0).toUpperCase() + user.status.slice(1) : 'N/A'}
+                    </Badge>
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button variant="ghost" size="sm" onClick={() => handleEdit(user)}>
@@ -593,7 +644,7 @@ const UsersTable = ({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-6">
+                <TableCell colSpan={5} className="text-center py-6">
                   No users found
                 </TableCell>
               </TableRow>

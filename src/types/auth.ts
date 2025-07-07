@@ -1,11 +1,13 @@
 export enum UserRole {
   SUPER_ADMIN = 'super_admin',
   ADMIN = 'admin',
-  REGISTRAR = 'registrar',
   CASHIER = 'cashier',
+  REGISTRAR = 'registrar',
   TEACHER = 'teacher',
+  STUDENT = 'student',
   LIBRARIAN = 'librarian',
-  STUDENT = 'student'
+  STAFF = 'staff',
+  PARENT = 'parent',
 }
 
 export type LoginFormData = {
@@ -18,6 +20,8 @@ export type RegisterFormData = {
   password?: string;
   firstName: string;
   lastName: string;
+  department?: string;
+  status?: 'active' | 'inactive' | 'suspended';
 };
 
 export type User = {
@@ -25,12 +29,11 @@ export type User = {
   email: string;
   firstName: string;
   lastName: string;
-  role: UserRole;
   roles: UserRole[];
   avatar?: string;
   department?: string;
   position?: string;
   phone?: string;
-  status?: 'Active' | 'Inactive' | 'On Leave';
+  status?: 'active' | 'inactive' | 'suspended';
   joinDate?: Date;
 };

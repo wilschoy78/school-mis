@@ -106,7 +106,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
             <TooltipContent side="right">
               <div className="flex flex-col">
                 <span className="font-medium">{fullName}</span>
-                <span className="text-xs text-muted-foreground capitalize">{user.role.replace('_', ' ')}</span>
+                <span className="text-xs text-muted-foreground capitalize">{user.roles[0]?.replace('_', ' ')}</span>
                 {user.department && <span className="text-xs text-muted-foreground">{user.department}</span>}
               </div>
             </TooltipContent>
@@ -120,7 +120,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
           </Avatar>
           <div className="flex flex-col animate-fade-in">
             <span className="text-sm font-medium text-sidebar-foreground">{fullName}</span>
-            <span className="text-xs text-sidebar-foreground/70 capitalize">{user.role.replace('_', ' ')}</span>
+            <span className="text-xs text-sidebar-foreground/70 capitalize">{user.roles[0]?.replace('_', ' ')}</span>
           </div>
         </div>
       )}
