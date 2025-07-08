@@ -9,12 +9,17 @@ export const userService = {
     search?: string,
   ): Promise<{ users: User[]; total: number }> => {
     const params: any = { page, limit };
-    if (roles && roles !== 'all') {
-      params.roles = roles;
+    if (roles === 'all') {
+      // Explicitly send 'all' as string
+      params.roles = 'all';
+    } else if (roles && roles.length > 0) {
+      // Convert array to JSON string for proper backend parsing
+      params.roles = JSON.stringify(roles);
     }
     if (search) {
       params.search = search;
     }
+
     const response = await api.get('/users', { params });
     return response.data;
   },
@@ -40,6 +45,11 @@ export const userService = {
 
   updateUserStatus: async (id: string, status: 'active' | 'inactive' | 'suspended'): Promise<User> => {
     const response = await api.patch(`/users/${id}/status`, { status });
+    return response.data;
+  },
+
+  updatePassword: async (id: number, password: string): Promise<{ message: string }> => {
+    const response = await api.patch(`/users/${id}/password`, { password });
     return response.data;
   },
 };

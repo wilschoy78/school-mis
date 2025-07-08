@@ -33,9 +33,14 @@ export const LoginForm: React.FC = () => {
   });
 
   const onSubmit = async (values: LoginFormData) => {
-    const success = await login(values);
-    if (!success) {
-      setError('Invalid email or password.');
+    try {
+      await login(values);
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('An unexpected error occurred.');
+      }
     }
   };
   

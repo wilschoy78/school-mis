@@ -17,9 +17,10 @@ export type LoginFormData = {
 
 export type RegisterFormData = {
   email: string;
-  password?: string;
+  // password?: string;
   firstName: string;
   lastName: string;
+  roles: UserRole[];
   department?: string;
   status?: 'active' | 'inactive' | 'suspended';
 };

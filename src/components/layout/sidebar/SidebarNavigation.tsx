@@ -33,7 +33,15 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
   closeMobileSidebar
 }) => {
   const { user, checkPermission } = useAuth();
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(
+    location.pathname.startsWith('/settings') || location.pathname === '/users'
+  );
+
+  React.useEffect(() => {
+    if (location.pathname.startsWith('/settings') || location.pathname === '/users') {
+      setSettingsOpen(true);
+    }
+  }, [location.pathname]);
 
   const navItems = [
     {
@@ -42,12 +50,12 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
       icon: <LayoutDashboard className="w-5 h-5" />,
       roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.REGISTRAR, UserRole.CASHIER, UserRole.TEACHER, UserRole.LIBRARIAN, UserRole.STUDENT],
     },
-    // {
-    //   name: 'Students',
-    //   path: '/students',
-    //   icon: <GraduationCap className="w-5 h-5" />,
-    //   roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.REGISTRAR, UserRole.TEACHER],
-    // },
+    {
+      name: 'Students',
+      path: '/students',
+      icon: <GraduationCap className="w-5 h-5" />,
+      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.REGISTRAR, UserRole.TEACHER],
+    },
     // {
     //   name: 'Enrollment',
     //   path: '/enrollment',
@@ -60,12 +68,12 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
     //   icon: <DollarSign className="w-5 h-5" />,
     //   roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.CASHIER],
     // },
-    {
-      name: 'Employees',
-      path: '/employees',
-      icon: <Users className="w-5 h-5" />,
-      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
-    },
+    // {
+    //   name: 'Employees',
+    //   path: '/employees',
+    //   icon: <Users className="w-5 h-5" />,
+    //   roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
+    // },
     // {
     //   name: 'Library',
     //   path: '/library',
@@ -83,7 +91,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
       roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
     },
     {
-      name: 'User Management',
+      name: 'Users',
       path: '/users',
       icon: <UserCog className="w-4 h-4" />,
       roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
@@ -94,12 +102,12 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
     //   icon: <GraduationCap className="w-4 h-4" />,
     //   roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.REGISTRAR],
     // },
-    {
-      name: 'Notifications',
-      path: '/settings/notifications',
-      icon: <Bell className="w-4 h-4" />,
-      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
-    },
+    // {
+    //   name: 'Notifications',
+    //   path: '/settings/notifications',
+    //   icon: <Bell className="w-4 h-4" />,
+    //   roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
+    // },
     // {
     //   name: 'Security',
     //   path: '/settings/security',
@@ -118,12 +126,12 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
     //   icon: <Section className="w-4 h-4" />,
     //   roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.REGISTRAR],
     // },
-    {
-      name: 'API Configuration',
-      path: '/settings/api',
-      icon: <Globe className="w-4 h-4" />,
-      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
-    },
+    // {
+    //   name: 'API Configuration',
+    //   path: '/settings/api',
+    //   icon: <Globe className="w-4 h-4" />,
+    //   roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
+    // },
   ].filter(item => checkPermission(item.roles));
 
   return (

@@ -2,21 +2,21 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Table, TableBody, TableCaption, TableCell, 
-  TableHead, TableHeader, TableRow 
+import {
+  Table, TableBody, TableCaption, TableCell,
+  TableHead, TableHeader, TableRow
 } from '@/components/ui/table';
-import { 
-  Dialog, DialogContent, DialogDescription, 
+import {
+  Dialog, DialogContent, DialogDescription,
   DialogHeader, DialogTitle, DialogTrigger, DialogFooter
 } from '@/components/ui/dialog';
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
 } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
@@ -29,7 +29,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DataPagination from '@/components/common/DataPagination';
 import { Checkbox } from '@/components/ui/checkbox';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuLabel,
@@ -37,45 +37,56 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import ErrorPage from './ErrorPage';
 import { userService } from '@/services/userService';
 
 const ITEMS_PER_PAGE = 5;
 
 interface UserForm {
   firstName: string;
-  lastName: string;
+  lastName:string;
   email: string;
   roles: UserRole[];
   department?: string;
   status?: 'active' | 'inactive' | 'suspended';
+  password?: string;
 }
 
 const UsersPage = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [totalUsers, setTotalUsers] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ title: string; message: string } | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRoles, setSelectedRoles] = useState<UserRole[]>([]);
-  
+
+  const passwordForm = useForm<{ password: ''}>({
+    defaultValues: {
+      password: '',
+    }
+  });
+
   const form = useForm<UserForm>({
     defaultValues: {
       firstName: '',
       lastName: '',
       email: '',
-      roles: [UserRole.STUDENT],
+      roles: [UserRole.STAFF],
       department: '',
-      status: 'active',
+      status: 'inactive',
+      password: '',
     }
   });
-  
+
   const { toast } = useToast();
 
-  const fetchUsers = useCallback(async () => {
+  const fetchUsers = async () => {
     try {
       setLoading(true);
       const rolesToFetch = activeTab === 'all' ? 'all' : [activeTab as UserRole];
@@ -83,22 +94,36 @@ const UsersPage = () => {
         currentPage,
         ITEMS_PER_PAGE,
         rolesToFetch,
-        searchTerm,
+        debouncedSearchTerm,
       );
       setUsers(fetchedUsers);
       setTotalUsers(total);
       setError(null);
     } catch (err) {
-      setError('Failed to fetch users');
+      setError({ title: 'Fetch Error', message: 'Failed to fetch users' });
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [activeTab, currentPage, searchTerm]);
+  };
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchTerm]);
 
   useEffect(() => {
     fetchUsers();
-  }, [fetchUsers]);
+  }, [activeTab, currentPage, debouncedSearchTerm]);
+
+  useEffect(() => {
+    form.setValue('roles', selectedRoles);
+  }, [selectedRoles, form]);
 
   const totalPages = Math.ceil(totalUsers / ITEMS_PER_PAGE);
   const paginatedUsers = users;
@@ -109,30 +134,29 @@ const UsersPage = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, activeTab]);
+  }, [debouncedSearchTerm, activeTab]);
 
   const handleSubmit = async (data: UserForm) => {
-    const roles = selectedRoles.length > 0 ? selectedRoles : data.roles;
-    
     setLoading(true);
     try {
       if (selectedUser) {
-        const { ...updateData } = data;
-const updatedUser = {
-  ...updateData,
-  roles,
-  department: updateData.department,
-  status: updateData.status,
-};
+        const { password, ...updateData } = data;
+        const updatedUser = {
+          ...updateData,
+          roles: data.roles,
+          department: updateData.department,
+          status: updateData.status,
+        };
         await userService.updateUser(selectedUser.id, updatedUser);
         toast({
-          title: "User Updated",
+          title: 'User Updated',
           description: `${data.firstName} ${data.lastName}'s account has been updated.`
         });
       } else {
-        const newUser = {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { password, ...newUser } = {
           ...data,
-          roles,
+          roles: data.roles,
           department: data.department,
           status: data.status,
         };
@@ -143,20 +167,50 @@ const updatedUser = {
         });
       }
       await fetchUsers(); // Refresh data
-    } catch (err) {
-      setError('Failed to save user');
+    } catch (err: any) {
+      if (err.response && err.response.status === 409) {
+        setError({
+          title: 'User Creation Failed',
+          message: 'A user with this email already exists. Please use a different email.',
+        });
+      } else {
+        setError({
+          title: 'Error',
+          message: 'Failed to save user. Please try again later.',
+        });
+      }
       console.error(err);
-      toast({
-        title: "Error",
-        description: "Failed to save user",
-        variant: "destructive"
-      });
     } finally {
       setLoading(false);
       setIsAddDialogOpen(false);
       setSelectedUser(null);
       setSelectedRoles([]);
       form.reset();
+    }
+  };
+
+  const handlePasswordSubmit = async (data: {password: string}) => {
+    if (!selectedUser) return;
+
+    setLoading(true);
+    try {
+      await userService.updatePassword(parseInt(selectedUser.id, 10), data.password);
+      toast({
+        title: 'Password Updated',
+        description: `The password for ${selectedUser.firstName} ${selectedUser.lastName} has been updated.`,
+      });
+      await fetchUsers();
+    } catch (err) {
+      setError({
+        title: 'Error',
+        message: 'Failed to update password. Please try again later.',
+      });
+      console.error(err);
+    } finally {
+      setLoading(false);
+      setIsPasswordDialogOpen(false);
+      setSelectedUser(null);
+      passwordForm.reset();
     }
   };
 
@@ -179,13 +233,19 @@ const updatedUser = {
       firstName: '',
       lastName: '',
       email: '',
-      roles: [UserRole.STUDENT],
+      roles: [UserRole.STAFF],
       department: '',
-      status: 'active',
+      status: 'inactive',
+      password: '',
     });
-    setSelectedRoles([UserRole.STUDENT]);
+    setSelectedRoles([UserRole.STAFF]);
     setSelectedUser(null);
     setIsAddDialogOpen(true);
+  };
+
+  const handlePasswordDialog = (user: User) => {
+    setSelectedUser(user);
+    setIsPasswordDialogOpen(true);
   };
 
   const toggleRole = (role: UserRole) => {
@@ -216,7 +276,7 @@ const updatedUser = {
       [UserRole.STAFF]: "bg-orange-500",
       [UserRole.PARENT]: "bg-pink-500",
     };
-    
+
     return (
       <Badge className={styles[role]}>
         {role.replace('_', ' ')}
@@ -238,8 +298,8 @@ const updatedUser = {
   if (loading) {
     return (
       <MainLayout>
-        <PageHeader 
-          title="User Management" 
+        <PageHeader
+          title="User Management"
           description="Manage users, roles, and permissions"
         />
         <div className="flex justify-center items-center h-64">
@@ -250,36 +310,27 @@ const updatedUser = {
   }
 
   if (error) {
-    return (
-      <MainLayout>
-        <PageHeader 
-          title="User Management" 
-          description="Manage users, roles, and permissions"
-        />
-        <div className="flex justify-center items-center h-64">
-          <p className="text-red-500">{error}</p>
-        </div>
-      </MainLayout>
-    );
+    return <ErrorPage title={error.title} message={error.message} />;
   }
 
   return (
     <MainLayout>
-      <PageHeader 
-        title="User Management" 
+      <PageHeader
+        title="User Management"
         description="Manage users, roles, and permissions"
       />
-      
-      <Tabs defaultValue="all" className="w-full mb-6" onValueChange={setActiveTab}>
+
+      <Tabs value={activeTab} className="w-full mb-6" onValueChange={setActiveTab}>
         <div className="flex justify-between items-center mb-4">
           <TabsList>
-            <TabsTrigger value="all">All Users</TabsTrigger>
-            <TabsTrigger value="admin">Admins</TabsTrigger>
-            <TabsTrigger value="teacher">Teachers</TabsTrigger>
-            <TabsTrigger value="student">Students</TabsTrigger>
-            <TabsTrigger value="staff">Staff</TabsTrigger>
+            <TabsTrigger value="all">All</TabsTrigger>
+            {Object.values(UserRole).filter(role => ![UserRole.SUPER_ADMIN, UserRole.PARENT, UserRole.CASHIER, UserRole.REGISTRAR, UserRole.LIBRARIAN].includes(role)).map(role => (
+              <TabsTrigger key={role} value={role}>
+                {role.charAt(0).toUpperCase() + role.slice(1).replace('_', ' ')}
+              </TabsTrigger>
+            ))}
           </TabsList>
-          
+
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={handleOpenDialog}>
@@ -372,8 +423,8 @@ const updatedUser = {
                       {selectedRoles.map(role => (
                         <Badge key={role} className="flex items-center gap-1">
                           {role.replace('_', ' ')}
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             onClick={() => removeRole(role)}
                             className="ml-1 h-4 w-4 rounded-full bg-muted-foreground/20 flex items-center justify-center"
                           >
@@ -481,9 +532,9 @@ const updatedUser = {
                   />
 
                   <DialogFooter className="mt-6">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
+                    <Button
+                      type="button"
+                      variant="outline"
                       onClick={() => {
                         setIsAddDialogOpen(false);
                         setSelectedUser(null);
@@ -501,7 +552,7 @@ const updatedUser = {
           </Dialog>
         </div>
 
-        <div className="mb-6">
+        <div className="flex justify-between items-center mb-6">
           <div className="relative w-full max-w-sm">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
             <Input
@@ -511,73 +562,94 @@ const updatedUser = {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          <div className="text-sm text-gray-500">
+            Total Users: {totalUsers}
+          </div>
         </div>
 
         <TabsContent value="all" className="mt-0">
-          <UsersTable 
-            users={paginatedUsers} 
-            handleEdit={handleEdit} 
+          <UsersTable
+            users={paginatedUsers}
+            handleEdit={handleEdit}
             getInitials={getInitials}
             getRolesByUser={getRolesByUser}
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={onPageChange}
+            handlePasswordDialog={handlePasswordDialog}
           />
         </TabsContent>
-        <TabsContent value="admin" className="mt-0">
-          <UsersTable 
-            users={paginatedUsers} 
-            handleEdit={handleEdit} 
-            getInitials={getInitials}
-            getRolesByUser={getRolesByUser}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={onPageChange}
-          />
-        </TabsContent>
-        <TabsContent value="teacher" className="mt-0">
-          <UsersTable 
-            users={paginatedUsers} 
-            handleEdit={handleEdit} 
-            getInitials={getInitials}
-            getRolesByUser={getRolesByUser}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={onPageChange}
-          />
-        </TabsContent>
-        <TabsContent value="student" className="mt-0">
-          <UsersTable 
-            users={paginatedUsers} 
-            handleEdit={handleEdit} 
-            getInitials={getInitials}
-            getRolesByUser={getRolesByUser}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={onPageChange}
-          />
-        </TabsContent>
-        <TabsContent value="staff" className="mt-0">
-          <UsersTable 
-            users={paginatedUsers} 
-            handleEdit={handleEdit} 
-            getInitials={getInitials}
-            getRolesByUser={getRolesByUser}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={onPageChange}
-          />
-        </TabsContent>
+        {Object.values(UserRole).filter(role => ![UserRole.SUPER_ADMIN, UserRole.PARENT, UserRole.CASHIER, UserRole.REGISTRAR, UserRole.LIBRARIAN].includes(role)).map(role => (
+          <TabsContent key={role} value={role} className="mt-0">
+            <UsersTable
+              users={paginatedUsers}
+              handleEdit={handleEdit}
+              getInitials={getInitials}
+              getRolesByUser={getRolesByUser}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+              handlePasswordDialog={handlePasswordDialog}
+            />
+          </TabsContent>
+        ))}
       </Tabs>
+
+      <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Password</DialogTitle>
+            <DialogDescription>
+              Enter a new password for {selectedUser?.firstName}{' '}
+              {selectedUser?.lastName}.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...passwordForm}>
+            <form
+              onSubmit={passwordForm.handleSubmit(handlePasswordSubmit)}
+              className="space-y-4"
+            >
+              <FormField
+                control={passwordForm.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>New Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="********"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsPasswordDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">Update Password</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 };
 
-const UsersTable = ({ 
-  users, 
-  handleEdit, 
-  getInitials, 
+const UsersTable = ({
+  users,
+  handleEdit,
+  getInitials,
   getRolesByUser,
+  handlePasswordDialog,
   currentPage,
   totalPages,
   onPageChange
@@ -586,6 +658,7 @@ const UsersTable = ({
   handleEdit: (user: User) => void;
   getInitials: (user: User) => string;
   getRolesByUser: (user: User) => JSX.Element;
+  handlePasswordDialog: (user: User) => void;
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -632,7 +705,7 @@ const UsersTable = ({
                       <Button variant="ghost" size="sm" onClick={() => handleEdit(user)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" onClick={() => handlePasswordDialog(user)}>
                         <Key className="h-4 w-4" />
                       </Button>
                       <Button variant="ghost" size="sm">
@@ -652,7 +725,7 @@ const UsersTable = ({
           </TableBody>
         </Table>
       </div>
-      
+
       <div className="flex justify-center mt-4">
         <DataPagination
           currentPage={currentPage}

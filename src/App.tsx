@@ -30,6 +30,7 @@ import Users from "./pages/Users";
 import NotFound from "./pages/NotFound";
 import PrivateRoute from "./components/common/PrivateRoute";
 import { useState } from 'react';
+import ChangePasswordPage from "./pages/ChangePassword";
 
 const App = () => {
   // Create a new QueryClient instance inside the component
@@ -48,6 +49,7 @@ const App = () => {
                   <BrowserRouter>
                     <Routes>
                       <Route path="/login" element={<Login />} />
+                      <Route path="/change-password" element={<ChangePasswordPage />} />
                       <Route element={<PrivateRoute />}>
                         <Route path="/" element={<Index />} />
                         <Route path="/dashboard" element={<Dashboard />} />

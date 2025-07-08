@@ -18,7 +18,23 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
+);
+
+// Add a response interceptor to handle errors globally
+api.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    // Check if the error has a response and a message
+    if (error.response && error.response.data && error.response.data.message) {
+      // Reject with the custom error message from the API
+      return Promise.reject(new Error(error.response.data.message));
+    }
+    // For other types of errors, reject with the original error
+    return Promise.reject(error);
+  },
 );
 
 export default api;

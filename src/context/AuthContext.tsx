@@ -8,20 +8,22 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: LoginFormData) => Promise<boolean>;
+  login: (credentials: LoginFormData) => Promise<void>;
   logout: () => void;
   checkPermission: (allowedRoles: UserRole[]) => boolean;
   updateUserProfile: (userData: Partial<User>) => void;
+  mustChangePassword?: boolean;
 }
 
 const initialState: AuthContextType = {
   user: null,
   isAuthenticated: false,
   isLoading: true,
-  login: async () => false,
+  login: async () => {},
   logout: () => {},
   checkPermission: () => false,
-  updateUserProfile: () => {}
+  updateUserProfile: () => {},
+  mustChangePassword: false,
 };
 
 const AuthContext = createContext<AuthContextType>(initialState);
@@ -35,6 +37,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [mustChangePassword, setMustChangePassword] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -61,18 +64,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(false);
   }, []);
 
-  const login = async (credentials: LoginFormData): Promise<boolean> => {
+  const login = async (credentials: LoginFormData): Promise<void> => {
     try {
       const response = await authService.login(credentials);
-      const { token, user: loggedInUser } = response; // Assuming response contains both token and user
-      
+      const { token, user: loggedInUser, mustChangePassword } = response;
+
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(loggedInUser)); // Store the full user object
+      localStorage.setItem('user', JSON.stringify(loggedInUser));
       setUser(loggedInUser);
-      return true;
+      setMustChangePassword(mustChangePassword);
     } catch (error) {
       console.error('Login failed:', error);
-      return false;
+      throw error;
     }
   };
 
@@ -80,6 +83,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     authService.logout();
     localStorage.removeItem('user'); // Also remove user from local storage
     setUser(null);
+    window.location.href = '/login';
   };
 
   const checkPermission = (allowedRoles: UserRole[]): boolean => {
@@ -110,7 +114,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         login,
         logout,
         checkPermission,
-        updateUserProfile
+        updateUserProfile,
+        mustChangePassword,
       }}
     >
       {children}
