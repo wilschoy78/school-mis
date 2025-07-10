@@ -50,12 +50,12 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
       icon: <LayoutDashboard className="w-5 h-5" />,
       roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.REGISTRAR, UserRole.CASHIER, UserRole.TEACHER, UserRole.LIBRARIAN, UserRole.STUDENT],
     },
-    {
-      name: 'Students',
-      path: '/students',
-      icon: <GraduationCap className="w-5 h-5" />,
-      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.REGISTRAR, UserRole.TEACHER],
-    },
+    // {
+    //   name: 'Students',
+    //   path: '/students',
+    //   icon: <GraduationCap className="w-5 h-5" />,
+    //   roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.REGISTRAR, UserRole.TEACHER],
+    // },
     // {
     //   name: 'Enrollment',
     //   path: '/enrollment',
@@ -68,12 +68,12 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
     //   icon: <DollarSign className="w-5 h-5" />,
     //   roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.CASHIER],
     // },
-    // {
-    //   name: 'Employees',
-    //   path: '/employees',
-    //   icon: <Users className="w-5 h-5" />,
-    //   roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
-    // },
+    {
+      name: 'Employees',
+      path: '/employees',
+      icon: <Users className="w-5 h-5" />,
+      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
+    },
     // {
     //   name: 'Library',
     //   path: '/library',
