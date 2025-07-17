@@ -1,245 +1,246 @@
-import React, { useState, useEffect } from 'react';
-import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Table, TableBody, TableCaption, TableCell, 
-  TableHead, TableHeader, TableRow 
-} from '@/components/ui/table';
-import { 
-  Dialog, DialogContent, DialogDescription, 
-  DialogHeader, DialogTitle, DialogTrigger, DialogFooter
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Search, Pencil, Mail, Phone } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { format } from 'date-fns';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Plus,
+  PlusCircle,
+  Search,
+  Users,
+  Building,
+  UserCheck,
+  Settings,
+  Mail,
+  Phone,
+} from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { useEmployeeManagement } from '@/hooks/useEmployeeManagement';
+import { User, UserRole } from '@/types/auth';
+import { EmployeeFormData } from '@/types/employee';
+import { Textarea } from '@/components/ui/textarea';
+import { MainLayout, PageHeader } from '@/components/layout/MainLayout';
 import DataPagination from '@/components/common/DataPagination';
 
-const employeesData = [
-  { 
-    id: '1', 
-    name: 'John Smith', 
-    email: 'john.smith@school.edu', 
-    phone: '555-1234',
-    position: 'Math Teacher', 
-    department: 'Mathematics',
-    joiningDate: new Date(2020, 5, 15),
-    status: 'Active',
-    avatar: ''
-  },
-  { 
-    id: '2', 
-    name: 'Sarah Johnson', 
-    email: 'sarah.johnson@school.edu', 
-    phone: '555-5678',
-    position: 'Science Teacher', 
-    department: 'Science',
-    joiningDate: new Date(2019, 8, 10),
-    status: 'Active',
-    avatar: ''
-  },
-  { 
-    id: '3', 
-    name: 'Michael Brown', 
-    email: 'michael.brown@school.edu', 
-    phone: '555-9012',
-    position: 'Principal', 
-    department: 'Administration',
-    joiningDate: new Date(2018, 2, 22),
-    status: 'Active',
-    avatar: ''
-  },
-  { 
-    id: '4', 
-    name: 'Emily Davis', 
-    email: 'emily.davis@school.edu', 
-    phone: '555-3456',
-    position: 'Librarian', 
-    department: 'Library',
-    joiningDate: new Date(2021, 1, 5),
-    status: 'On Leave',
-    avatar: ''
-  },
-  { 
-    id: '5', 
-    name: 'Robert Wilson', 
-    email: 'robert.wilson@school.edu', 
-    phone: '555-7890',
-    position: 'English Teacher', 
-    department: 'Languages',
-    joiningDate: new Date(2022, 7, 18),
-    status: 'Active',
-    avatar: ''
-  },
-  { 
-    id: '6', 
-    name: 'Jennifer Thomas', 
-    email: 'jennifer.thomas@school.edu', 
-    phone: '555-5432',
-    position: 'Physical Education Teacher', 
-    department: 'Physical Education',
-    joiningDate: new Date(2021, 6, 5),
-    status: 'Active',
-    avatar: ''
-  },
-  { 
-    id: '7', 
-    name: 'Daniel Harris', 
-    email: 'daniel.harris@school.edu', 
-    phone: '555-8765',
-    position: 'IT Coordinator', 
-    department: 'Administration',
-    joiningDate: new Date(2020, 3, 12),
-    status: 'Active',
-    avatar: ''
-  },
-  { 
-    id: '8', 
-    name: 'Melissa Garcia', 
-    email: 'melissa.garcia@school.edu', 
-    phone: '555-9876',
-    position: 'Counselor', 
-    department: 'Counseling',
-    joiningDate: new Date(2022, 1, 15),
-    status: 'On Leave',
-    avatar: ''
-  },
-];
-
-const ITEMS_PER_PAGE = 5;
-
 const EmployeesPage = () => {
+  const {
+    // Employee data
+    employees,
+    totalEmployees,
+    employeeStats,
+    isEmployeesLoading,
+    employeesError,
+    
+    // Position and Department data
+    positions,
+    departments,
+    
+    // Pagination and filters
+    currentPage,
+    totalPages,
+    searchTerm,
+    selectedDepartment,
+    selectedPosition,
+    
+    // Dialog states
+    isAddDialogOpen,
+    setIsAddDialogOpen,
+    isEditDialogOpen,
+    setIsEditDialogOpen,
+    isPositionDialogOpen,
+    setIsPositionDialogOpen,
+    isDepartmentDialogOpen,
+    setIsDepartmentDialogOpen,
+    selectedEmployee,
+    
+    // Handlers
+    handleAddEmployee,
+    handleEditEmployee,
+    handleAddPosition,
+    handleEditPosition,
+    handleAddDepartment,
+    handleEditDepartment,
+    openEditDialog,
+    openPositionEditDialog,
+    openDepartmentEditDialog,
+    handlePageChange,
+    handleSearch,
+    handleDepartmentFilter,
+    handlePositionFilter,
+  } = useEmployeeManagement();
+
   const [activeTab, setActiveTab] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [employees, setEmployees] = useState(employeesData);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [formData, setFormData] = useState({
-    name: '',
+  const [formData, setFormData] = useState<EmployeeFormData>({
+    firstName: '',
+    lastName: '',
+    middleName: '',
     email: '',
     phone: '',
-    position: '',
+    roles: ['staff'],
     department: '',
-    status: 'Active',
+    position: '',
+    employeeId: '',
+    hireDate: '',
+    salary: undefined,
+    emergencyContact: '',
+    emergencyPhone: '',
+    address: '',
+    dateOfBirth: '',
+    status: 'active',
   });
-  const { toast } = useToast();
+  
+  const [positionFormData, setPositionFormData] = useState({
+    name: '',
+    description: '',
+    category: 'administrative' as const,
+  });
+  
+  const [departmentFormData, setDepartmentFormData] = useState({
+    name: '',
+    description: '',
+    category: 'academic' as const,
+  });
 
-  let displayedEmployees = employees;
-  if (activeTab === 'teachers') {
-    displayedEmployees = employees.filter(emp => emp.position.includes('Teacher'));
-  } else if (activeTab === 'staff') {
-    displayedEmployees = employees.filter(emp => !emp.position.includes('Teacher'));
-  }
+  // Reset form data when dialogs close
+  const resetFormData = () => {
+    setFormData({
+      firstName: '',
+      lastName: '',
+      middleName: '',
+      email: '',
+      phone: '',
+      roles: ['staff'],
+      department: '',
+      position: '',
+      employeeId: '',
+      hireDate: '',
+      salary: undefined,
+      emergencyContact: '',
+      emergencyPhone: '',
+      address: '',
+      dateOfBirth: '',
+      status: 'active',
+    });
+  };
 
-  const filteredEmployees = displayedEmployees.filter(employee => 
-    employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.position.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const resetPositionFormData = () => {
+    setPositionFormData({
+      name: '',
+      description: '',
+      category: 'administrative',
+    });
+  };
 
-  const totalPages = Math.ceil(filteredEmployees.length / ITEMS_PER_PAGE);
-  const paginatedEmployees = filteredEmployees.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE, 
-    currentPage * ITEMS_PER_PAGE
-  );
+  const resetDepartmentFormData = () => {
+    setDepartmentFormData({
+      name: '',
+      description: '',
+      category: 'academic',
+    });
+  };
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, activeTab]);
+  // Form submission handlers
+  const handleSubmitEmployee = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (selectedEmployee) {
+        await handleEditEmployee(formData);
+      } else {
+        await handleAddEmployee(formData);
+      }
+      resetFormData();
+    } catch (error) {
+      // Error handling is done in the hook
+    }
+  };
 
-  const handleInputChange = (e) => {
+  const handleSubmitPosition = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await handleAddPosition(positionFormData);
+      resetPositionFormData();
+    } catch (error) {
+      // Error handling is done in the hook
+    }
+  };
+
+  const handleSubmitDepartment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await handleAddDepartment(departmentFormData);
+      resetDepartmentFormData();
+    } catch (error) {
+      // Error handling is done in the hook
+    }
+  };
+
+  // Open edit dialog with pre-filled data
+  const handleEditClick = (employee: User) => {
+    setFormData({
+      firstName: employee.firstName,
+      lastName: employee.lastName,
+      middleName: employee.middleName || '',
+      email: employee.email,
+      phone: employee.phone || '',
+      roles: employee.roles,
+      department: employee.department || '',
+      position: employee.position || '',
+      employeeId: employee.employeeId || '',
+      hireDate: employee.hireDate || '',
+      salary: employee.salary,
+      emergencyContact: employee.emergencyContact || '',
+      emergencyPhone: employee.emergencyPhone || '',
+      address: employee.address || '',
+      dateOfBirth: employee.dateOfBirth || '',
+      status: employee.status || 'active',
+    });
+    openEditDialog(employee);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSelectChange = (name, value) => {
+  const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleAddEmployee = () => {
-    if (!formData.name || !formData.email || !formData.position || !formData.department) {
-      toast({
-        title: "Error",
-        description: "Please fill all required fields",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (selectedEmployee) {
-      const updatedEmployees = employees.map(employee => 
-        employee.id === selectedEmployee.id 
-          ? { 
-              ...employee, 
-              ...formData,
-              joiningDate: employee.joiningDate,
-              avatar: employee.avatar
-            } 
-          : employee
-      );
-      setEmployees(updatedEmployees);
-      toast({
-        title: "Success",
-        description: "Employee updated successfully",
-      });
-    } else {
-      const newEmployee = {
-        id: (employees.length + 1).toString(),
-        ...formData,
-        joiningDate: new Date(),
-        avatar: ''
-      };
-      setEmployees([...employees, newEmployee]);
-      toast({
-        title: "Success",
-        description: "Employee added successfully",
-      });
-    }
-    
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      position: '',
-      department: '',
-      status: 'Active',
-    });
-    setSelectedEmployee(null);
-    setIsAddDialogOpen(false);
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName[0]}${lastName[0]}`.toUpperCase();
   };
 
-  const handleEditEmployee = (employee) => {
-    setSelectedEmployee(employee);
-    setFormData({
-      name: employee.name,
-      email: employee.email,
-      phone: employee.phone,
-      position: employee.position,
-      department: employee.department,
-      status: employee.status,
-    });
-    setIsAddDialogOpen(true);
-  };
-
-  const getInitials = (name) => {
-    return name
-      .split(' ')
-      .map(part => part[0])
-      .join('')
-      .toUpperCase();
-  };
-
-  const getStatusBadge = (status) => {
-    if (status === 'Active') {
+  const getStatusBadge = (status: string) => {
+    if (status === 'active') {
       return <Badge className="bg-green-500">Active</Badge>;
-    } else if (status === 'On Leave') {
+    } else if (status === 'on_leave') {
       return <Badge className="bg-yellow-500">On Leave</Badge>;
     } else {
       return <Badge className="bg-red-500">Inactive</Badge>;
@@ -274,115 +275,150 @@ const EmployeesPage = () => {
                   Enter the employee details below.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="name" className="text-right">Name</Label>
+              <form onSubmit={handleSubmitEmployee} className="grid gap-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input 
+                      id="firstName" 
+                      name="firstName" 
+                      value={formData.firstName} 
+                      onChange={handleInputChange} 
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input 
+                      id="lastName" 
+                      name="lastName" 
+                      value={formData.lastName} 
+                      onChange={handleInputChange} 
+                      required
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="middleName">Middle Name</Label>
                   <Input 
-                    id="name" 
-                    name="name" 
-                    value={formData.name} 
+                    id="middleName" 
+                    name="middleName" 
+                    value={formData.middleName} 
                     onChange={handleInputChange} 
-                    className="col-span-3" 
                   />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="email" className="text-right">Email</Label>
+                <div>
+                  <Label htmlFor="email">Email</Label>
                   <Input 
                     id="email" 
                     name="email" 
                     type="email"
                     value={formData.email} 
                     onChange={handleInputChange} 
-                    className="col-span-3" 
+                    required
                   />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="phone" className="text-right">Phone</Label>
+                <div>
+                  <Label htmlFor="phone">Phone</Label>
                   <Input 
                     id="phone" 
                     name="phone" 
                     value={formData.phone} 
                     onChange={handleInputChange} 
-                    className="col-span-3" 
                   />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="position" className="text-right">Position</Label>
+                <div>
+                  <Label htmlFor="employeeId">Employee ID</Label>
+                  <Input 
+                    id="employeeId" 
+                    name="employeeId" 
+                    value={formData.employeeId} 
+                    onChange={handleInputChange} 
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="position">Position</Label>
                   <Select 
                     value={formData.position} 
                     onValueChange={(value) => handleSelectChange('position', value)}
                   >
-                    <SelectTrigger className="col-span-3">
+                    <SelectTrigger>
                       <SelectValue placeholder="Select position" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Math Teacher">Math Teacher</SelectItem>
-                      <SelectItem value="Science Teacher">Science Teacher</SelectItem>
-                      <SelectItem value="English Teacher">English Teacher</SelectItem>
-                      <SelectItem value="History Teacher">History Teacher</SelectItem>
-                      <SelectItem value="Art Teacher">Art Teacher</SelectItem>
-                      <SelectItem value="Principal">Principal</SelectItem>
-                      <SelectItem value="Vice Principal">Vice Principal</SelectItem>
-                      <SelectItem value="Administrator">Administrator</SelectItem>
-                      <SelectItem value="Librarian">Librarian</SelectItem>
-                      <SelectItem value="Counselor">Counselor</SelectItem>
+                      {positions.map((position) => (
+                        <SelectItem key={position.id.toString()} value={position.id.toString()}>
+                          {position.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="department" className="text-right">Department</Label>
+                <div>
+                  <Label htmlFor="department">Department</Label>
                   <Select 
                     value={formData.department} 
                     onValueChange={(value) => handleSelectChange('department', value)}
                   >
-                    <SelectTrigger className="col-span-3">
+                    <SelectTrigger>
                       <SelectValue placeholder="Select department" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Mathematics">Mathematics</SelectItem>
-                      <SelectItem value="Science">Science</SelectItem>
-                      <SelectItem value="Languages">Languages</SelectItem>
-                      <SelectItem value="Social Studies">Social Studies</SelectItem>
-                      <SelectItem value="Arts">Arts</SelectItem>
-                      <SelectItem value="Administration">Administration</SelectItem>
-                      <SelectItem value="Library">Library</SelectItem>
-                      <SelectItem value="Counseling">Counseling</SelectItem>
+                      {departments.map((department) => (
+                        <SelectItem key={department.id} value={department.id.toString()}>
+                          {department.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="status" className="text-right">Status</Label>
+                <div>
+                  <Label htmlFor="hireDate">Hire Date</Label>
+                  <Input 
+                    id="hireDate" 
+                    name="hireDate" 
+                    type="date"
+                    value={formData.hireDate} 
+                    onChange={handleInputChange} 
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="salary">Salary</Label>
+                  <Input 
+                    id="salary" 
+                    name="salary" 
+                    type="number"
+                    value={formData.salary || ''} 
+                    onChange={handleInputChange} 
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="status">Status</Label>
                   <Select 
                     value={formData.status} 
                     onValueChange={(value) => handleSelectChange('status', value)}
                   >
-                    <SelectTrigger className="col-span-3">
+                    <SelectTrigger>
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Active">Active</SelectItem>
-                      <SelectItem value="On Leave">On Leave</SelectItem>
-                      <SelectItem value="Inactive">Inactive</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="on_leave">On Leave</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
+              </form>
               <DialogFooter>
                 <Button variant="outline" onClick={() => {
                   setIsAddDialogOpen(false);
-                  setSelectedEmployee(null);
-                  setFormData({
-                    name: '',
-                    email: '',
-                    phone: '',
-                    position: '',
-                    department: '',
-                    status: 'Active',
-                  });
+                  resetFormData();
                 }}>
                   Cancel
                 </Button>
-                <Button onClick={handleAddEmployee}>Save</Button>
+                <Button type="submit" onClick={handleSubmitEmployee}>
+                  {selectedEmployee ? 'Update' : 'Save'}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -395,42 +431,42 @@ const EmployeesPage = () => {
               placeholder="Search employees..."
               className="pl-10"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => handleSearch(e.target.value)}
             />
           </div>
         </div>
 
         <TabsContent value="all" className="mt-0">
           <EmployeeTable 
-            employees={paginatedEmployees} 
-            handleEdit={handleEditEmployee} 
+            employees={employees}
+            handleEdit={handleEditClick}
             getInitials={getInitials}
             getStatusBadge={getStatusBadge}
             currentPage={currentPage}
             totalPages={totalPages}
-            onPageChange={setCurrentPage}
+            onPageChange={handlePageChange}
           />
         </TabsContent>
         <TabsContent value="teachers" className="mt-0">
           <EmployeeTable 
-            employees={paginatedEmployees} 
-            handleEdit={handleEditEmployee} 
+            employees={employees.filter(emp => emp.roles.includes('TEACHER' as UserRole))}
+            handleEdit={handleEditClick} 
             getInitials={getInitials}
             getStatusBadge={getStatusBadge}
             currentPage={currentPage}
             totalPages={totalPages}
-            onPageChange={setCurrentPage}
+            onPageChange={handlePageChange}
           />
         </TabsContent>
         <TabsContent value="staff" className="mt-0">
           <EmployeeTable 
-            employees={paginatedEmployees} 
-            handleEdit={handleEditEmployee} 
+            employees={employees.filter(emp => emp.roles.includes('STAFF' as UserRole))}
+            handleEdit={handleEditClick} 
             getInitials={getInitials}
             getStatusBadge={getStatusBadge}
             currentPage={currentPage}
             totalPages={totalPages}
-            onPageChange={setCurrentPage}
+            onPageChange={handlePageChange}
           />
         </TabsContent>
       </Tabs>
@@ -446,9 +482,17 @@ const EmployeeTable = ({
   currentPage,
   totalPages,
   onPageChange
+}: {
+  employees: User[];
+  handleEdit: (employee: User) => void;
+  getInitials: (firstName: string, lastName: string) => string;
+  getStatusBadge: (status: string) => JSX.Element;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 }) => {
   return (
-    <>
+    <div>
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <Table>
           <TableCaption>List of employees</TableCaption>
@@ -470,11 +514,11 @@ const EmployeeTable = ({
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
-                        <AvatarImage src={employee.avatar} alt={employee.name} />
-                        <AvatarFallback>{getInitials(employee.name)}</AvatarFallback>
+                        <AvatarImage src={employee.avatar} alt={`${employee.firstName} ${employee.lastName}`} />
+                        <AvatarFallback>{getInitials(employee.firstName, employee.lastName)}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-medium">{employee.name}</p>
+                        <p className="font-medium">{employee.firstName} {employee.lastName}</p>
                         <p className="text-sm text-gray-500">{employee.email}</p>
                       </div>
                     </div>
@@ -487,41 +531,40 @@ const EmployeeTable = ({
                         <Mail className="h-4 w-4 mr-2 text-gray-500" />
                         <span className="text-sm">{employee.email}</span>
                       </div>
-                      <div className="flex items-center mt-1">
-                        <Phone className="h-4 w-4 mr-2 text-gray-500" />
-                        <span className="text-sm">{employee.phone}</span>
-                      </div>
+                      {employee.phone && (
+                        <div className="flex items-center mt-1">
+                          <Phone className="h-4 w-4 mr-2 text-gray-500" />
+                          <span className="text-sm">{employee.phone}</span>
+                        </div>
+                      )}
                     </div>
                   </TableCell>
-                  <TableCell>{format(employee.joiningDate, 'MMM d, yyyy')}</TableCell>
-                  <TableCell>{getStatusBadge(employee.status)}</TableCell>
+                  <TableCell>{employee.hireDate}</TableCell>
+                  <TableCell>{getStatusBadge(employee.status || 'active')}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={() => handleEdit(employee)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" size="sm" onClick={() => handleEdit(employee)}>
+                        Edit
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))
+                ))
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-6">
-                  No employees found
-                </TableCell>
+                <TableCell colSpan={7} className="text-center">No employees found</TableCell>
               </TableRow>
             )}
           </TableBody>
-        </Table>
-      </div>
-      
-      <div className="flex justify-center mt-4">
-        <DataPagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={onPageChange}
-        />
-      </div>
-    </>
-  );
+       </Table>
+       
+       <DataPagination
+         currentPage={currentPage}
+         totalPages={totalPages}
+         onPageChange={onPageChange}
+       />
+     </div>
+   </div>
+ );
 };
-
 export default EmployeesPage;

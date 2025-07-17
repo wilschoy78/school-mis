@@ -30,6 +30,7 @@ export type User = {
   email: string;
   firstName: string;
   lastName: string;
+  middleName?: string;
   roles: UserRole[];
   avatar?: string;
   department?: string;
@@ -37,4 +38,17 @@ export type User = {
   phone?: string;
   status?: 'active' | 'inactive' | 'suspended';
   joinDate?: Date;
+  // Employee-specific fields
+  employeeId?: string;
+  studentId?: string;
+  hireDate?: string;
+  salary?: number;
+  emergencyContact?: string;
+  emergencyPhone?: string;
+  address?: string;
+  dateOfBirth?: string;
+  profilePicture?: string;
+  lastLoginAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
 };
